@@ -2,15 +2,13 @@
 import pygame
 from pygame.math import Vector2
 
+from game_base import GameBase
 from custom_random import shuffle
 from card import Card, Vacant, Rank, Suit, create_single_suit_deck, CARD_SIZE, LINK_OFFSET
 from rules import RuleSet
-
+from events import post_event, AnimationEvent, MoveToTopEvent
 
 class SpiderRuleSet(RuleSet):
-    def __init__(self):
-        ...
-
     def can_link_cards(self, upper: Card, lower: Card) -> bool:
         # only rank matters in spider
         if upper.rank == Rank.NONE:
@@ -27,7 +25,19 @@ class SpiderRuleSet(RuleSet):
             previous_parent.flip()
 
         # check for completed sequence
-        ...
+        for parent in card.iterate_up():
+            if parent.rank != Rank.KING:
+                return
+            else:
+                king = parent
+                break
+
+        # iterate the king down to the bottom, checking for a complete sequence
+        expected_rank = Rank.KING.value
+        for linked_card in king.iterate_down():
+            if linked_card.rank.value != expected_rank:
+                return
+            expected_rank -= 1
 
     def can_drag_card(self, card: Card) -> bool:
         # can only drag face up cards
@@ -43,10 +53,12 @@ class SpiderRuleSet(RuleSet):
         
         return True
 
-    
-class SpiderGame:
+
+class SpiderGame(GameBase):
     def __init__(self):
+        super().__init__()
         self.rules = SpiderRuleSet()
+        self.card_manipulator.set_rules(self.rules)
         self.deck: list[Card] = []
 
         self.playing_rows: list[Vacant] = []
@@ -62,10 +74,12 @@ class SpiderGame:
             bottom_vacant.link_card(card)
             card.face_up = True
 
-            custom_event = pygame.event.Event(pygame.USEREVENT, {"key": "animation", "card": card, "start_pos": card.pos, "end_pos": bottom_vacant.pos + LINK_OFFSET})
-            pygame.event.post(custom_event)
-            custom_event = pygame.event.Event(pygame.USEREVENT, {"key": "move_to_top", "card": card})
-            pygame.event.post(custom_event)
+            event = AnimationEvent(card, card.pos, bottom_vacant.pos + LINK_OFFSET, delay=i * 3)
+            post_event(event)
+
+            event = MoveToTopEvent(card)
+            post_event(event)
+
 
     def setup_game(self) -> list[Card]:
         cards: list[Card] = []
@@ -115,4 +129,6 @@ class SpiderGame:
                 vacants.insert(0, ending_vacant)
                 self.ending_rows.append(ending_vacant)
 
-        return vacants + cards
+        self.cards = vacants + cards
+        self.card_manipulator.set_cards(self.cards)
+        return self.cards

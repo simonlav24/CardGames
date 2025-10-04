@@ -77,8 +77,8 @@ class Card:
 
     def set_pos(self, pos: Vector2):
         self.pos = pos
-        if self.linked_down is not None:
-            self.linked_down.set_pos(pos + LINK_OFFSET)
+        # if self.linked_down is not None:
+        #     self.linked_down.set_pos(pos + LINK_OFFSET)
 
     def get_bottom_link(self) -> 'Card':
         # return bottom most linked card

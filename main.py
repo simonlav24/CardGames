@@ -2,16 +2,11 @@
 import sys
 
 import pygame
-from pygame.math import Vector2
 
 import custom_random
 import globals
-from card import Suit, create_deck, create_single_suit_deck, draw_card, Card, Vacant, CARD_SIZE
-from card_event_handler import CardEventHandler, LINK_OFFSET
-from animation import Animation
+from card import draw_card
 from spider_game import SpiderGame
-from events import EventSystem, AnimationEvent
-
 
 # def klondike() -> tuple[list[Card], list[Vacant]]:
 #     deck = create_deck()
@@ -60,22 +55,12 @@ def main():
     FPS = 60
 
     game = SpiderGame()
-    event_system = EventSystem()
-
     cards = game.setup_game()
-
-    card_event_handler = CardEventHandler(game.rules, event_system)
-    card_event_handler.set_cards(cards)
-
-    animations = []
-    is_animating = False
-
 
     # Main loop
     done = False
     while not done:
         for event in pygame.event.get():
-            card_event_handler.handle_event(event)
             if event.type == pygame.QUIT:
                 done = True
             elif event.type == pygame.KEYDOWN:
@@ -84,34 +69,29 @@ def main():
                 elif event.key == pygame.K_d:
                     game.deal_from_deck()
 
+            elif event.type == pygame.MOUSEBUTTONDOWN:
+                if event.button == 1:  # Left click
+                    game.on_mouse_press(event.pos)
+            elif event.type == pygame.MOUSEBUTTONUP:
+                if event.button == 1:  # Left click
+                    game.on_mouse_release(event.pos)
+            elif event.type == pygame.MOUSEMOTION:
+                game.on_mouse_move(event.pos)
+
             elif event.type == pygame.USEREVENT:
-                if event.dict.get("key") == "animation":
-                    card = event.dict.get("card")
-                    start_pos = event.dict.get("start_pos")
-                    end_pos = event.dict.get("end_pos")
-                    anim = Animation(card, start_pos, end_pos)
-                    animations.append(anim)
-                
-                if event.dict.get("key") == 'move_to_top':
-                    card = event.dict.get("card")
-                    cards.remove(card)
-                    cards.append(card)  # move to top
+                game.handle_event(event.dict.get('event'))
 
-        is_animating = False
-        animations = [anim for anim in animations if not anim.finished]
-        if len(animations) > 0:
-            is_animating = True
-        for anim in animations:
-            anim.step()
+        # step
+        game.step()
 
-        # Fill screen with a color
+        # draw
         screen.fill((30, 30, 30))
 
         for card in cards:
             draw_card(screen, card)
         
 
-        # Update display
+        # display
         pygame.display.flip()
         clock.tick(FPS)
 
