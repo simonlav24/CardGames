@@ -6,7 +6,7 @@ from pygame.math import Vector2
 
 from card import Card
 from card_manipulator import CardManipulator
-from events import Event, EventType
+from events import EventType
 
 class Entity(Protocol):
     def step(self):

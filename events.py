@@ -12,6 +12,7 @@ from card import Card
 class EventType(Enum):
     ADD_ELEMENT = 1
     MOVE_TO_TOP = 2
+    SEQUENCE_COMPLETE = 3
 
 
 @dataclass
@@ -34,6 +35,12 @@ class AnimationEvent(Event):
 class MoveToTopEvent(Event):
     card: Card
     type: EventType = EventType.MOVE_TO_TOP
+
+
+@dataclass
+class SequenceCompleteEvent(Event):
+    main_card: Card
+    type: EventType = EventType.SEQUENCE_COMPLETE
 
 
 def post_event(event: Event):
