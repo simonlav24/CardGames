@@ -83,6 +83,14 @@ class SpiderGame(GameBase):
             if is_vacant:
                 break
         
+        king_parent = king.get_prev()
+        king_parent.break_lower_link()
+        if not king_parent.is_face_up():
+            king_parent.flip()
+        king.break_upper_link()
+        vacant.link_card(king)
+        self.ending_rows[vacant] = False
+
         current_card = king
         delay = 30
         pos = vacant.pos + LINK_OFFSET
@@ -129,9 +137,10 @@ class SpiderGame(GameBase):
         # 10 places
         margin = 10
         last_card: Card = None
+        start_x = 50
 
         for i in range(10):
-            col = 100 + (CARD_SIZE[0] + margin) * i
+            col = start_x + (CARD_SIZE[0] + margin) * i
             last_card = Vacant(Vector2(col, 100))
             self.playing_rows.append(last_card)
             vacants.insert(0, last_card)
@@ -158,7 +167,7 @@ class SpiderGame(GameBase):
         # 8 empty cards in the end
         for i in range(4):
             for j in range(2):
-                col = 100 + (CARD_SIZE[0] + margin) * (i + 10)
+                col = start_x + (CARD_SIZE[0] + margin) * (i + 10) + 4 * margin
                 row = 100 + j * 340
                 ending_vacant = Vacant(Vector2(col, row))
                 vacants.insert(0, ending_vacant)

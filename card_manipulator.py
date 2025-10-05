@@ -21,6 +21,7 @@ class CardManipulator:
         self.selected_card: Card | None = None
         self.dragged_card: Card | None = None
         self.drag_offset: Vector2 = Vector2(0, 0)
+        self.last_pos: Vector2 = Vector2(0, 0)
 
         self.is_linking: bool = True
     
@@ -43,16 +44,22 @@ class CardManipulator:
 
 
     def on_mouse_press(self, pos: Vector2) -> None:
-        if self.selected_card is None:
+        if self.selected_card is None or self.selected_card.rank == Rank.NONE:
             return
         if not self.rules.can_drag_card(self.selected_card):
             return
         debug_print(f"Selected card: {self.selected_card.rank} of {self.selected_card.suit}")
+        self.last_pos = self.selected_card.pos.copy()
         self.dragged_card = self.selected_card
         self.drag_offset = Vector2(pos) - self.dragged_card.pos
 
         self.move_card_to_top(self.dragged_card)
 
+    def _calc_previous_pos(self, card: Card) -> Vector2:
+        parent = card.get_prev()
+        if parent is None:
+            return self.last_pos
+        return parent.pos + LINK_OFFSET
 
     def on_mouse_release(self, pos: Vector2) -> None:
         if not self.dragged_card:
@@ -65,15 +72,16 @@ class CardManipulator:
             potential_parent = self.find_card_at_pos(pos, exclude=card_to_link)
 
             if potential_parent is None:
-                self.animate_sequence_to_pos(card_to_link, card_to_link.get_prev().pos + LINK_OFFSET)
+                # card has not been placed
+                self.animate_sequence_to_pos(card_to_link, self._calc_previous_pos(card_to_link))
                 return
             
             else:
-                # link cards
+                # card is placed, link cards
                 previous_link = card_to_link.get_prev()
                 is_linked = self.link_cards(potential_parent, card_to_link)
                 if not is_linked:
-                    self.animate_sequence_to_pos(card_to_link, card_to_link.get_prev().pos + LINK_OFFSET)
+                    self.animate_sequence_to_pos(card_to_link, self._calc_previous_pos(card_to_link))
                 else:
                     self.animate_sequence_to_pos(card_to_link, potential_parent.pos + LINK_OFFSET)
                     self.rules.on_place_card(card_to_link, previous_link)

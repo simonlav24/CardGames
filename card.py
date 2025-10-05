@@ -86,6 +86,10 @@ class Card:
         while card.linked_down is not None:
             card = card.linked_down
         return card
+    
+    def get_top_link(self) -> 'Card':
+        *_, last = self.iterate_up()
+        return last
 
     def is_linked(self) -> bool:
         # check if linked from above
@@ -97,14 +101,20 @@ class Card:
     def get_prev(self) -> 'Card | None':
         return self.linked_up
     
-    def break_upper_link(self):
-        # break link to upper card
+    def break_upper_link(self) -> None:
+        ''' break link to upper card '''
         if self.linked_up is not None:
             self.linked_up.linked_down = None
             self.linked_up = None
 
+    def break_lower_link(self) -> None:
+        ''' break link to lower card '''
+        if self.linked_down is not None:
+            self.linked_down.linked_up = None
+            self.linked_down = None
+
     def link_card(self, card: 'Card') -> bool:
-        # link a card below this card
+        ''' link a card below this card '''
 
         for uplink in self.iterate_up():
             if uplink is self:

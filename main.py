@@ -6,36 +6,9 @@ import pygame
 import custom_random
 import globals
 from card import draw_card
+
 from spider_game import SpiderGame
-
-# def klondike() -> tuple[list[Card], list[Vacant]]:
-#     deck = create_deck()
-#     shuffle(deck)
-#     for card in deck:
-#         card.set_pos(Vector2(600, 400))
-#     vacants: list[Vacant] = []
-    
-#     margin = 10
-#     for i in range(7):
-
-#         col = 100 + (CARD_SIZE[0] + margin) * i
-#         # create vacant
-#         vacants.insert(0, Vacant(Vector2(col, margin)))
-
-#         # place i face down cards
-#         for j in range(i):
-#             card = deck.pop(0)
-#             card.face_up = False
-#             card.set_pos(Vector2(col, margin + (LINK_OFFSET.y * (j + 1))))
-#             deck.append(card)
- 
-#         # place 1 face up card
-#         card = deck.pop(0)
-#         card.face_up = True
-#         card.set_pos(Vector2(col, margin + (LINK_OFFSET.y * (i + 1))))
-#         deck.append(card)
-
-#     return deck, vacants
+from klondike_game import KlondikeGame
 
 
 def main():
@@ -54,7 +27,7 @@ def main():
     clock = pygame.time.Clock()
     FPS = 60
 
-    game = SpiderGame()
+    game = KlondikeGame()
     cards = game.setup_game()
 
     # Main loop
