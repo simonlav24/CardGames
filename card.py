@@ -2,14 +2,14 @@
 from enum import Enum
 
 import pygame
-from pygame.math import Vector2
+from utils import Vector2
 
-import globals
+import game_globals
 
 DEBUG = True
 
 CARD_SIZE = Vector2(71, 96)
-LINK_OFFSET = Vector2(0, 17)
+DEFAULT_LINK_OFFSET = Vector2(0, 17)
 
 class Rank(Enum):
     NONE = 0
@@ -36,10 +36,10 @@ class Suit(Enum):
     DIAMONDS = 4
 
 suit_text = {
-    Suit.HEARTS: "H",
-    Suit.DIAMONDS: "D",
-    Suit.CLUBS: "C",
-    Suit.SPADES: "S"
+    Suit.HEARTS: "Hearts",
+    Suit.DIAMONDS: "Diamonds",
+    Suit.CLUBS: "Clubs",
+    Suit.SPADES: "Spades"
 }
 
 suit_color = {
@@ -50,7 +50,7 @@ suit_color = {
 }
 
 rank_text = {
-    Rank.ACE: "A",
+    Rank.ACE: "Ace",
     Rank.TWO: "2",
     Rank.THREE: "3",
     Rank.FOUR: "4",
@@ -60,9 +60,9 @@ rank_text = {
     Rank.EIGHT: "8",
     Rank.NINE: "9",
     Rank.TEN: "10",
-    Rank.JACK: "J",
-    Rank.QUEEN: "Q",
-    Rank.KING: "K"
+    Rank.JACK: "Jack",
+    Rank.QUEEN: "Queen",
+    Rank.KING: "King"
 }
 
 
@@ -71,14 +71,21 @@ class Card:
         self.rank = rank
         self.suit = suit
         self.face_up = True
-        self.pos = Vector2(0, 0)
         self.linked_up: Card | None = None
         self.linked_down: Card | None = None
+        
+        self.pos = Vector2(0, 0)
+        self.link_offset = DEFAULT_LINK_OFFSET
+        self.is_locked: bool = False
 
-    def set_pos(self, pos: Vector2):
-        self.pos = pos
-        # if self.linked_down is not None:
-        #     self.linked_down.set_pos(pos + LINK_OFFSET)
+    def set_link_offset(self, offset: Vector2) -> None:
+        self.link_offset = offset.copy()
+
+    def set_pos(self, pos: Vector2) -> None:
+        self.pos = pos.copy()
+
+    def get_pos(self) -> Vector2:
+        return self.pos.copy()
 
     def get_bottom_link(self) -> 'Card':
         # return bottom most linked card
@@ -132,10 +139,12 @@ class Card:
         
         self.linked_down = card
         card.linked_up = self
+        
+        card.link_offset = self.link_offset
         return True
 
     def __repr__(self):
-        return f"{rank_text[self.rank]}{suit_text[self.suit]}"
+        return f"{rank_text[self.rank]} of {suit_text[self.suit]}"
     
     def iterate_up(self):
         card = self
@@ -173,9 +182,9 @@ def draw_card(surface: pygame.Surface, card: Card):
         pygame.draw.rect(surface, (0, 0, 0), card_rect, 2)
     else:
         if card.face_up:
-            surface.blit(globals.card_sprites, card_rect, get_card_sprite_rect(card))
+            surface.blit(game_globals.card_sprites, card_rect, get_card_sprite_rect(card))
         else:
-            surface.blit(globals.card_sprites, card_rect, get_card_sprite_rect(None))
+            surface.blit(game_globals.card_sprites, card_rect, get_card_sprite_rect(None))
     
     if card.linked_down is not None:
         if DEBUG:

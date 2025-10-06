@@ -1,10 +1,10 @@
 
 
-from pygame.math import Vector2
+from utils import Vector2
 
 from game_base import GameBase
 from custom_random import shuffle
-from card import Card, Vacant, Rank, Suit, create_deck, CARD_SIZE, LINK_OFFSET
+from card import Card, Vacant, Rank, Suit, create_deck, CARD_SIZE
 from rules import RuleSet
 from events import post_event, Event, EventType, AnimationEvent, MoveToTopEvent
 from card_utilities import animate_and_relink
@@ -100,11 +100,11 @@ class KlondikeGame(GameBase):
     def handle_event(self, event: Event) -> None:
         super().handle_event(event)
 
-        if event.type == EventType.DOUBLE_CLICK:
+        if event.type == EventType.DOUBLE_CLICK_CARD:
             self.double_click_on_card(event.card)
 
         
-    def setup_game(self) -> tuple[list[Card], list[Vacant]]:
+    def setup_game(self) -> list[Card]:
         cards = create_deck()
         shuffle(cards)
         self.deck = cards.copy()
@@ -130,13 +130,13 @@ class KlondikeGame(GameBase):
                 last_card.link_card(card)
                 last_card = card
                 card.face_up = False
-                card.set_pos(Vector2(col, margin + (LINK_OFFSET.y * (j + 1))))
+                card.set_pos(Vector2(col, margin + (card.link_offset.y * (j + 1))))
     
             # place 1 face up card
             card = self.deck.pop(0)
             last_card.link_card(card)
             card.face_up = True
-            card.set_pos(Vector2(col, margin + (LINK_OFFSET.y * (i + 1))))
+            card.set_pos(Vector2(col, margin + (card.link_offset.y * (i + 1))))
 
         # create ending rows
         for i in range(4):
@@ -150,6 +150,7 @@ class KlondikeGame(GameBase):
         self.card_manipulator.set_cards(self.cards)
         return self.cards
     
+
     def double_click_on_card(self, card: Card) -> None:
         for row_vacant, is_vacant in self.ending_rows.items():
 

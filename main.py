@@ -4,11 +4,12 @@ import sys
 import pygame
 
 import custom_random
-import globals
+import game_globals
 from card import draw_card
 
 from spider_game import SpiderGame
 from klondike_game import KlondikeGame
+from shithead_game import ShitheadGame
 
 
 def main():
@@ -16,11 +17,10 @@ def main():
     pygame.init()
 
     # Screen settings
-    WIDTH, HEIGHT = 1280, 720
-    screen = pygame.display.set_mode((WIDTH, HEIGHT))
+    screen = pygame.display.set_mode((game_globals.win_width, game_globals.win_height))
     pygame.display.set_caption("Card Games")
 
-    globals.init_globals()
+    game_globals.init_globals()
     custom_random.initialize()
 
     # Clock for controlling FPS
@@ -28,7 +28,7 @@ def main():
     FPS = 60
     DOUBLE_CLICK_INTERVAL = 400
 
-    game = KlondikeGame()
+    game = ShitheadGame()
     cards = game.setup_game()
 
     # Main loop

@@ -3,17 +3,18 @@ from dataclasses import dataclass
 from enum import Enum
 
 import pygame
-from pygame.math import Vector2
+from utils import Vector2
 
-from animation import Positionable, Animation
+from animation import AnimateCard
 from card import Card
 
 
 class EventType(Enum):
-    ADD_ELEMENT = 1
+    ADD_ANIMATION = 1
     MOVE_TO_TOP = 2
     SEQUENCE_COMPLETE = 3
-    DOUBLE_CLICK = 4
+    DOUBLE_CLICK_CARD = 4
+    CLICK_CARD = 5
 
 
 @dataclass
@@ -22,14 +23,14 @@ class Event:
 
 @dataclass
 class AnimationEvent(Event):
-    card: Positionable
+    card: Card
     start_pos: Vector2
     end_pos: Vector2
-    type: EventType = EventType.ADD_ELEMENT
+    type: EventType = EventType.ADD_ANIMATION
     delay: int = 0
 
-    def create_element(self) -> Animation:
-        return Animation(self.card, self.start_pos, self.end_pos, self.delay)
+    def create_animation(self) -> AnimateCard:
+        return AnimateCard(self.card, self.start_pos, self.end_pos, self.delay)
 
 
 @dataclass
@@ -45,9 +46,16 @@ class SequenceCompleteEvent(Event):
 
 
 @dataclass
+class ClickedCard(Event):
+    card: Card
+    type: EventType = EventType.CLICK_CARD
+
+
+@dataclass
 class DoubleClickedCard(Event):
     card: Card
-    type: EventType = EventType.DOUBLE_CLICK
+    type: EventType = EventType.DOUBLE_CLICK_CARD
+
 
 def post_event(event: Event):
     custom_event = pygame.event.Event(pygame.USEREVENT, {"event": event})

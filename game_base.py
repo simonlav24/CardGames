@@ -1,32 +1,25 @@
 
 
-from typing import Protocol
 
-from pygame.math import Vector2
+from utils import Vector2
 
 from card import Card
 from card_manipulator import CardManipulator
 from events import EventType, Event
-
-class Entity(Protocol):
-    def step(self):
-        ...
-    
-    def is_done(self) -> bool:
-        ...
-
+from animation import AnimateCard
 
 class GameBase:
     def __init__(self):
         self.cards: list[Card] = []
-        self.elements: list[Entity] = []
+        self.animations: list[AnimateCard] = []
         self.card_manipulator: CardManipulator = CardManipulator()
 
 
     def handle_event(self, event: Event) -> None:
         match event.type:
-            case EventType.ADD_ELEMENT:
-                self.elements.append(event.create_element())
+            case EventType.ADD_ANIMATION:
+                new_animation = event.create_animation()
+                self.animations.append(new_animation)
             
             case EventType.MOVE_TO_TOP:
                 card = event.card
@@ -34,9 +27,9 @@ class GameBase:
                 self.cards.append(card)
 
     def step(self):
-        for element in self.elements:
+        for element in self.animations:
             element.step()
-        self.elements = [e for e in self.elements if not e.is_done()]
+        self.animations = [e for e in self.animations if not e.is_done()]
 
     def on_mouse_move(self, pos: Vector2) -> None:
         self.card_manipulator.on_mouse_move(pos)

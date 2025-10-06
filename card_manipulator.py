@@ -1,11 +1,11 @@
 
 import pygame
-from pygame.math import Vector2
+from utils import Vector2
 from pygame import Rect
 
-from card import Card, CARD_SIZE, Rank, LINK_OFFSET
+from card import Card, CARD_SIZE, Rank
 from rules import RuleSet
-from events import post_event, AnimationEvent, DoubleClickedCard
+from events import post_event, AnimationEvent, DoubleClickedCard, ClickedCard
 
 DEBUG = False
 
@@ -37,20 +37,24 @@ class CardManipulator:
         
         self.selected_card = None
         closest_card = self.find_card_at_pos(pos)
-        if closest_card is not None:
+        
+        if closest_card is not None and not closest_card.is_locked:
             self.selected_card = closest_card
 
     def on_mouse_press(self, pos: Vector2) -> None:
         if self.selected_card is None or self.selected_card.rank == Rank.NONE:
             return
+        
+        post_event(ClickedCard(card=self.selected_card))
+
         if not self.rules.can_drag_card(self.selected_card):
             return
-        debug_print(f"Selected card: {self.selected_card.rank} of {self.selected_card.suit}")
         self.last_pos = self.selected_card.pos.copy()
         self.dragged_card = self.selected_card
         self.drag_offset = Vector2(pos) - self.dragged_card.pos
 
         self.move_card_to_top(self.dragged_card)
+        
 
     def on_double_click(self, pos: Vector2):
         if (self.selected_card is None or
@@ -63,7 +67,7 @@ class CardManipulator:
         parent = card.get_prev()
         if parent is None:
             return self.last_pos
-        return parent.pos + LINK_OFFSET
+        return parent.pos + parent.link_offset
 
     def on_mouse_release(self, pos: Vector2) -> None:
         if not self.dragged_card:
@@ -87,7 +91,7 @@ class CardManipulator:
                 if not is_linked:
                     self.animate_sequence_to_pos(card_to_link, self._calc_previous_pos(card_to_link))
                 else:
-                    self.animate_sequence_to_pos(card_to_link, potential_parent.pos + LINK_OFFSET)
+                    self.animate_sequence_to_pos(card_to_link, potential_parent.pos + potential_parent.link_offset)
                     self.rules.on_place_card(card_to_link, previous_link)
 
 
@@ -97,7 +101,7 @@ class CardManipulator:
             post_event(event)
             # custom_event = pygame.event.Event(pygame.USEREVENT, {"key": "animation", "card": linked_card, "start_pos": linked_card.pos, "end_pos": end_pos, "delay": i * 2})
             # pygame.event.post(custom_event)
-            end_pos = end_pos + LINK_OFFSET
+            end_pos = end_pos + card.link_offset
 
         
     def find_card_at_pos(self, pos: Vector2, exclude: Card=None) -> Card | None:
@@ -121,8 +125,6 @@ class CardManipulator:
             return False
         
         is_linked = bottom_card.link_card(lower)
-        # if is_linked:
-        #     lower.set_pos(bottom_card.pos + LINK_OFFSET)
 
         return is_linked
 
@@ -133,7 +135,7 @@ class CardManipulator:
         card.set_pos(pos)
         next_card = card.get_next()
         if next_card is not None:
-            self.drag_card(next_card, pos + LINK_OFFSET)
+            self.drag_card(next_card, pos + next_card.get_prev().link_offset)
 
 
     def move_card_to_top(self, card: Card):

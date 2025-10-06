@@ -1,10 +1,10 @@
 
 
-from pygame.math import Vector2
+from utils import Vector2
 
 from game_base import GameBase
 from custom_random import shuffle
-from card import Card, Vacant, Rank, Suit, create_single_suit_deck, CARD_SIZE, LINK_OFFSET
+from card import Card, Vacant, Rank, Suit, create_single_suit_deck, CARD_SIZE
 from rules import RuleSet
 from events import post_event, Event, EventType, AnimationEvent, MoveToTopEvent, SequenceCompleteEvent
 
@@ -93,7 +93,7 @@ class SpiderGame(GameBase):
 
         current_card = king
         delay = 30
-        pos = vacant.pos + LINK_OFFSET
+        pos = vacant.pos + vacant.link_offset
         while current_card is not None:
 
             event = AnimationEvent(current_card, current_card.pos, pos, delay=delay)
@@ -104,7 +104,7 @@ class SpiderGame(GameBase):
 
             current_card = current_card.get_next()
             delay += 3
-            pos = pos + LINK_OFFSET
+            pos = pos + current_card.link_offset
 
 
     def deal_from_deck(self):
@@ -117,7 +117,7 @@ class SpiderGame(GameBase):
             bottom_vacant.link_card(card)
             card.face_up = True
 
-            event = AnimationEvent(card, card.pos, bottom_vacant.pos + LINK_OFFSET, delay=i * 3)
+            event = AnimationEvent(card, card.pos, bottom_vacant.pos + bottom_vacant.link_offset, delay=i * 3)
             post_event(event)
 
             event = MoveToTopEvent(card)
@@ -155,14 +155,14 @@ class SpiderGame(GameBase):
                 last_card.link_card(card)
                 last_card = card
                 card.face_up = False
-                card.set_pos(Vector2(col, 100 + (LINK_OFFSET.y * (j + 1))))
+                card.set_pos(Vector2(col, 100 + (card.link_offset.y * (j + 1))))
 
             # place 1 face up card
             card = self.deck.pop(0)
             last_card.link_card(card)
             last_card = card
             card.face_up = True
-            card.set_pos(Vector2(col, 100 + (LINK_OFFSET.y * (upside_down_cards + 1))))
+            card.set_pos(Vector2(col, 100 + (card.link_offset.y * (upside_down_cards + 1))))
 
         # 8 empty cards in the end
         for i in range(4):

@@ -1,19 +1,16 @@
 
 from typing import Protocol
 
-from pygame.math import Vector2
+from utils import Vector2
+
+from card import Card
 
 
-class Positionable(Protocol):
-    def set_pos(self, pos: Vector2) -> None:
-        ...
-
-
-class Animation:
-    def __init__(self, target: Positionable, start: Vector2, end: Vector2, delay: int = 0):
+class AnimateCard:
+    def __init__(self, target: Card, start: Vector2, end: Vector2, delay: int = 0):
         self.target = target
-        self.start = start
-        self.end = end
+        self.start = start.copy()
+        self.end = end.copy()
         self.delay = delay
 
         self.current_pos: Vector2 = start
@@ -27,6 +24,7 @@ class Animation:
             self.delay -= 1
             return
         
+        self.target.is_locked = True
         self.current_pos += (self.end - self.current_pos) * 0.2
 
         if (self.current_pos - self.end).length() < 1:
@@ -36,5 +34,6 @@ class Animation:
         self.target.set_pos(self.current_pos)
         
     def is_done(self) -> bool:
+        self.target.is_locked = False
         return self.finished
         

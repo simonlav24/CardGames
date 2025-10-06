@@ -5,6 +5,9 @@ import pygame
 font: pygame.Font | None = None
 card_sprites: pygame.Surface | None = None
 
+win_width: int = 1280
+win_height: int = 720
+
 def init_globals():
     global font, card_sprites
     pygame.font.init()
