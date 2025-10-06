@@ -13,6 +13,7 @@ class EventType(Enum):
     ADD_ELEMENT = 1
     MOVE_TO_TOP = 2
     SEQUENCE_COMPLETE = 3
+    DOUBLE_CLICK = 4
 
 
 @dataclass
@@ -42,6 +43,11 @@ class SequenceCompleteEvent(Event):
     main_card: Card
     type: EventType = EventType.SEQUENCE_COMPLETE
 
+
+@dataclass
+class DoubleClickedCard(Event):
+    card: Card
+    type: EventType = EventType.DOUBLE_CLICK
 
 def post_event(event: Event):
     custom_event = pygame.event.Event(pygame.USEREVENT, {"event": event})

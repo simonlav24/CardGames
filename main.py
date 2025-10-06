@@ -26,11 +26,14 @@ def main():
     # Clock for controlling FPS
     clock = pygame.time.Clock()
     FPS = 60
+    DOUBLE_CLICK_INTERVAL = 400
 
     game = KlondikeGame()
     cards = game.setup_game()
 
     # Main loop
+    last_click_time = 0
+
     done = False
     while not done:
         for event in pygame.event.get():
@@ -44,7 +47,11 @@ def main():
 
             elif event.type == pygame.MOUSEBUTTONDOWN:
                 if event.button == 1:  # Left click
+                    current_time = pygame.time.get_ticks()
+                    if current_time - last_click_time < DOUBLE_CLICK_INTERVAL:
+                        game.on_mouse_double_click(event.pos)
                     game.on_mouse_press(event.pos)
+                    last_click_time = current_time
             elif event.type == pygame.MOUSEBUTTONUP:
                 if event.button == 1:  # Left click
                     game.on_mouse_release(event.pos)

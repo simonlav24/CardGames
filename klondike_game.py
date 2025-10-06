@@ -6,8 +6,8 @@ from game_base import GameBase
 from custom_random import shuffle
 from card import Card, Vacant, Rank, Suit, create_deck, CARD_SIZE, LINK_OFFSET
 from rules import RuleSet
-from events import post_event, EventType, AnimationEvent, MoveToTopEvent, SequenceCompleteEvent
-
+from events import post_event, Event, EventType, AnimationEvent, MoveToTopEvent
+from card_utilities import animate_and_relink
 
 class KlondikeRuleSet(RuleSet):
     def __init__(self):
@@ -84,7 +84,7 @@ class KlondikeGame(GameBase):
                 event = AnimationEvent(card, card.pos, self.deck_pos.copy())
                 post_event(event)
                 self.deck.append(card)
-            self.drawn_deck = []
+            self.drawn_deck.clear()
             return
         
         card = self.deck.pop(0)
@@ -96,6 +96,12 @@ class KlondikeGame(GameBase):
 
         event = MoveToTopEvent(card)
         post_event(event)
+
+    def handle_event(self, event: Event) -> None:
+        super().handle_event(event)
+
+        if event.type == EventType.DOUBLE_CLICK:
+            self.double_click_on_card(event.card)
 
         
     def setup_game(self) -> tuple[list[Card], list[Vacant]]:
@@ -143,3 +149,26 @@ class KlondikeGame(GameBase):
         self.cards = vacants + cards
         self.card_manipulator.set_cards(self.cards)
         return self.cards
+    
+    def double_click_on_card(self, card: Card) -> None:
+        for row_vacant, is_vacant in self.ending_rows.items():
+
+            if card.rank == Rank.ACE and is_vacant:
+                card_parent = card.get_prev()
+                if card_parent is not None and not card_parent.is_face_up():
+                    card_parent.flip()
+                animate_and_relink(card, row_vacant)
+                if card in self.drawn_deck:
+                    self.drawn_deck.remove(card)
+                self.ending_rows[row_vacant] = False
+                break
+
+            bottom_card = row_vacant.get_bottom_link()
+            if bottom_card.suit == card.suit and bottom_card.rank.value + 1 == card.rank.value:
+                card_parent = card.get_prev()
+                if card_parent is not None and not card_parent.is_face_up():
+                    card_parent.flip()
+                animate_and_relink(card, bottom_card)
+                if card in self.drawn_deck:
+                    self.drawn_deck.remove(card)
+                break

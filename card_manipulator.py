@@ -5,7 +5,7 @@ from pygame import Rect
 
 from card import Card, CARD_SIZE, Rank, LINK_OFFSET
 from rules import RuleSet
-from events import post_event, AnimationEvent
+from events import post_event, AnimationEvent, DoubleClickedCard
 
 DEBUG = False
 
@@ -36,12 +36,9 @@ class CardManipulator:
             self.drag_card(self.dragged_card, Vector2(pos) - self.drag_offset)
         
         self.selected_card = None
-        for card in reversed(self.cards):
-            card_rect = Rect(*card.pos, *CARD_SIZE)
-            if card_rect.collidepoint(pos):
-                self.selected_card = card
-                break
-
+        closest_card = self.find_card_at_pos(pos)
+        if closest_card is not None:
+            self.selected_card = closest_card
 
     def on_mouse_press(self, pos: Vector2) -> None:
         if self.selected_card is None or self.selected_card.rank == Rank.NONE:
@@ -54,6 +51,13 @@ class CardManipulator:
         self.drag_offset = Vector2(pos) - self.dragged_card.pos
 
         self.move_card_to_top(self.dragged_card)
+
+    def on_double_click(self, pos: Vector2):
+        if (self.selected_card is None or
+            self.selected_card.rank == Rank.NONE or
+            not self.selected_card.is_face_up()):
+            return
+        post_event(DoubleClickedCard(card=self.selected_card))
 
     def _calc_previous_pos(self, card: Card) -> Vector2:
         parent = card.get_prev()
@@ -96,7 +100,7 @@ class CardManipulator:
             end_pos = end_pos + LINK_OFFSET
 
         
-    def find_card_at_pos(self, pos: Vector2, exclude: Card) -> Card | None:
+    def find_card_at_pos(self, pos: Vector2, exclude: Card=None) -> Card | None:
         for card in reversed(self.cards):
             if card is exclude:
                 continue

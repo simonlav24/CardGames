@@ -6,7 +6,7 @@ from pygame.math import Vector2
 
 from card import Card
 from card_manipulator import CardManipulator
-from events import EventType
+from events import EventType, Event
 
 class Entity(Protocol):
     def step(self):
@@ -23,7 +23,7 @@ class GameBase:
         self.card_manipulator: CardManipulator = CardManipulator()
 
 
-    def handle_event(self, event):
+    def handle_event(self, event: Event) -> None:
         match event.type:
             case EventType.ADD_ELEMENT:
                 self.elements.append(event.create_element())
@@ -46,3 +46,6 @@ class GameBase:
 
     def on_mouse_release(self, pos: Vector2) -> None:
         self.card_manipulator.on_mouse_release(pos)
+
+    def on_mouse_double_click(self, pos: Vector2) -> None:
+        self.card_manipulator.on_double_click(pos)

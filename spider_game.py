@@ -6,7 +6,7 @@ from game_base import GameBase
 from custom_random import shuffle
 from card import Card, Vacant, Rank, Suit, create_single_suit_deck, CARD_SIZE, LINK_OFFSET
 from rules import RuleSet
-from events import post_event, EventType, AnimationEvent, MoveToTopEvent, SequenceCompleteEvent
+from events import post_event, Event, EventType, AnimationEvent, MoveToTopEvent, SequenceCompleteEvent
 
 
 class SpiderRuleSet(RuleSet):
@@ -70,7 +70,7 @@ class SpiderGame(GameBase):
         self.playing_rows: list[Vacant] = []
         self.ending_rows: dict[Vacant, bool] = {}
 
-    def handle_event(self, event):
+    def handle_event(self, event: Event) -> None:
         super().handle_event(event)
         if event.type == EventType.SEQUENCE_COMPLETE:
             king = event.main_card
