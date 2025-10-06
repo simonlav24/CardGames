@@ -2,11 +2,12 @@
 
 from utils import Vector2
 
+import game_globals
 from game_base import GameBase
 from custom_random import shuffle
 from card import Card, Vacant, Rank, Suit, create_deck, CARD_SIZE
 from rules import RuleSet
-from events import post_event, Event, EventType, AnimationEvent, MoveToTopEvent
+from events import post_event, Event, EventType, DelayedSetPosEvent, MoveToTopEvent
 from card_utilities import animate_and_relink
 
 class KlondikeRuleSet(RuleSet):
@@ -75,14 +76,17 @@ class KlondikeGame(GameBase):
         self.ending_rows: dict[Vacant, bool] = {}
         self.deck_pos: Vector2 = Vector2(0, 0)
 
+    def on_key_press(self, key):
+        if key == game_globals.KEY_D:
+            self.deal_from_deck()
+
     def deal_from_deck(self):
         if len(self.deck) == 0:
             if len(self.drawn_deck) == 0:
                 return
             for card in self.drawn_deck:
                 card.flip()
-                event = AnimationEvent(card, card.pos, self.deck_pos.copy())
-                post_event(event)
+                card.set_pos(self.deck_pos.copy())
                 self.deck.append(card)
             self.drawn_deck.clear()
             return
@@ -91,8 +95,7 @@ class KlondikeGame(GameBase):
         card.flip()
         self.drawn_deck.append(card)
 
-        event = AnimationEvent(card, card.pos, card.pos + Vector2(- 10 - CARD_SIZE[0], 0))
-        post_event(event)
+        card.set_pos(card.pos + Vector2(- 10 - CARD_SIZE[0], 0))
 
         event = MoveToTopEvent(card)
         post_event(event)

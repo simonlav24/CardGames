@@ -42,8 +42,8 @@ def main():
             elif event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_ESCAPE:
                     done = True
-                elif event.key == pygame.K_d:
-                    game.deal_from_deck()
+                elif event.key:
+                    game.on_key_press(event.key)
 
             elif event.type == pygame.MOUSEBUTTONDOWN:
                 if event.button == 1:  # Left click

@@ -5,10 +5,9 @@ from utils import Vector2
 from game_globals import win_width, win_height
 from game_base import GameBase
 from custom_random import shuffle
-from card import Card, Vacant, Rank, Suit, create_deck, CARD_SIZE
+from card import Card, Vacant, Rank, create_deck, CARD_SIZE, rank_translate_ace_high
 from rules import RuleSet
-from events import post_event, Event, EventType, AnimationEvent, MoveToTopEvent
-from card_utilities import animate_and_relink
+from events import post_event, EventType, DelayedSetPosEvent
 from hand_cards import HandCards
 from pile import Pile
 
@@ -33,9 +32,16 @@ class GameRoutine:
         self.deck: list[Card] = None
         self.pile: Pile = None
         self.burn_vacant: Vacant = None
+        self.rank_translate = rank_translate_ace_high
+
+    def start(self) -> None:
+        self.players_hands[self.current_player_index].toggle_turn()
 
     def end_turn(self) -> None:
+        self.players_hands[self.current_player_index].toggle_turn()
         self.current_player_index = (self.current_player_index + 1) % self.num_of_players
+        self.players_hands[self.current_player_index].toggle_turn()
+
 
     def can_play_card(self, card: Card) -> bool:
         # can always play special cards
@@ -49,12 +55,12 @@ class GameRoutine:
                 return True
             
             case Rank.SEVEN:
-                if card.rank.value <= Rank.SEVEN.value:
+                if self.rank_translate(card.rank) <= self.rank_translate(Rank.SEVEN):
                     return True
                 else:
                     return False
 
-        if card.rank.value >= effective_rank.value:
+        if self.rank_translate(card.rank) >= self.rank_translate(effective_rank):
             return True
         return False
             
@@ -63,11 +69,25 @@ class GameRoutine:
         return card.rank in [Rank.TWO, Rank.THREE, Rank.TEN]
 
     def clicked_on_card(self, card: Card) -> None:
-        if not card in self.players_hands[self.current_player_index]:
+        current_hand = self.players_hands[self.current_player_index]
+
+        # click on pile -> play
+        if card in self.pile:
+            cards_to_play = current_hand.get_selected()
+            if len(cards_to_play) == 0:
+                return
+            if self.can_play_card(cards_to_play[0]):
+                self.play_cards(cards_to_play)
+
+        # click on card -> select
+        if not card in current_hand:
             return
         
-        if self.can_play_card(card):
-            self.play_card(card)
+        current_hand.toggle_select(card)
+
+
+        # if self.can_play_card(card):
+        #     self.play_card(card)
 
     def get_pile_top_effective_rank(self) -> Rank:
         pile_top = self.pile.get_top()
@@ -75,26 +95,28 @@ class GameRoutine:
             pile_top = pile_top.get_prev()
         return pile_top.rank
 
-    def play_card(self, card: Card) -> None:
+    def play_cards(self, cards: list[Card]) -> None:
         ''' play the card into the pile '''
-        print(f'play card {card}')
+        print(f'play card {cards[0]}')
         advance_turn = True
-        pile_top = self.pile.get_top()
         hands = self.players_hands[self.current_player_index]
+        pile_top = self.pile.get_top()
 
         # move card to pile
-        hands.remove(card)
-        self.pile.append(card)
-        post_event(AnimationEvent(card, card.pos, pile_top.pos + pile_top.link_offset))
+        for i, card in enumerate(cards):
+            hands.remove(card)
+            self.pile.append(card)
+            card.set_pos(pile_top.pos + pile_top.link_offset * (i + 1))
 
         # complete to hand
-        while len(hands) < 3:
-            drawn_card = self.deck.pop(0)
-            drawn_card.flip()
-            hands.append(drawn_card)
+        if len(self.deck) > 0:
+            while len(hands) < 3:
+                drawn_card = self.deck.pop(0)
+                drawn_card.flip()
+                hands.append(drawn_card)
 
         # check for effects
-        match card.rank:
+        match cards[0].rank:
             case Rank.TEN:
                 self.burn_pile()
                 advance_turn = False
@@ -119,7 +141,7 @@ class GameRoutine:
         self.pile.vacant.break_lower_link()
         for i, card in enumerate(self.pile):
             last_card.link_card(card)
-            post_event(AnimationEvent(card, card.pos, pos + i * self.burn_vacant.link_offset, delay=30 + i))
+            post_event(DelayedSetPosEvent(card, pos + i * self.burn_vacant.link_offset, delay=30 + i))
             last_card = card
         
         self.pile.clear()
@@ -131,6 +153,8 @@ class GameRoutine:
             card.break_upper_link()
             hands.append(card)
         self.pile.clear()
+        
+        self.end_turn()
 
 
 
@@ -165,7 +189,7 @@ class ShitheadGame(GameBase):
             card = event.card
             if card in self.pile:
                 self.game_routine.pick_up_pile()
-
+    
     def step(self):
         super().step()
         self.player_one_cards.step()
@@ -213,7 +237,7 @@ class ShitheadGame(GameBase):
             lucky_flipped.link_card(lucky_faced)
 
             # hand cards
-            pos = Vector2(win_width // 2, player_pos.y)
+            pos = Vector2(win_width // 2, player_pos.y - margin - CARD_SIZE[1])
             self.player_one_cards.set_pos(pos)
             hand_card = self.deck.pop(0)
             hand_card.flip()
@@ -236,7 +260,7 @@ class ShitheadGame(GameBase):
             lucky_flipped.link_card(lucky_faced)
 
             # hand cards
-            pos = Vector2(win_width // 2, player_pos.y + CARD_SIZE[1] * 2 + margin * 4)
+            pos = Vector2(win_width // 2, player_pos.y + CARD_SIZE[1] + margin * 4)
             self.player_two_cards.set_pos(pos)
             hand_card = self.deck.pop(0)
             hand_card.flip()
@@ -244,6 +268,8 @@ class ShitheadGame(GameBase):
 
         self.cards = vacants + cards
         self.card_manipulator.set_cards(self.cards)
+
+        self.game_routine.start()
         return self.cards
     
 

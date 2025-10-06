@@ -6,7 +6,7 @@ from utils import Vector2
 
 import game_globals
 
-DEBUG = True
+DEBUG = False
 
 CARD_SIZE = Vector2(71, 96)
 DEFAULT_LINK_OFFSET = Vector2(0, 17)
@@ -66,6 +66,15 @@ rank_text = {
 }
 
 
+def rank_translate_ace_low(rank: Rank) -> int:
+    return rank.value
+
+def rank_translate_ace_high(rank: Rank) -> int:
+    if rank == Rank.ACE:
+        return 14
+    return rank.value
+
+
 class Card:
     def __init__(self, rank: Rank, suit: Suit):
         self.rank = rank
@@ -74,7 +83,9 @@ class Card:
         self.linked_up: Card | None = None
         self.linked_down: Card | None = None
         
-        self.pos = Vector2(0, 0)
+        self.pos = Vector2()
+        self.target_pos = Vector2()
+
         self.link_offset = DEFAULT_LINK_OFFSET
         self.is_locked: bool = False
 
@@ -82,10 +93,14 @@ class Card:
         self.link_offset = offset.copy()
 
     def set_pos(self, pos: Vector2) -> None:
+        self.target_pos = pos.copy()
+
+    def set_abs_pos(self, pos: Vector2) -> None:
+        self.target_pos = pos.copy()
         self.pos = pos.copy()
 
     def get_pos(self) -> Vector2:
-        return self.pos.copy()
+        return self.target_pos.copy()
 
     def get_bottom_link(self) -> 'Card':
         # return bottom most linked card
@@ -140,7 +155,7 @@ class Card:
         self.linked_down = card
         card.linked_up = self
         
-        card.link_offset = self.link_offset
+        card.set_link_offset(self.link_offset)
         return True
 
     def __repr__(self):
@@ -161,14 +176,19 @@ class Card:
     def is_face_up(self) -> bool:
         return self.face_up
 
-    def flip(self):
+    def flip(self) -> None:
         self.face_up = not self.face_up
+
+    def step(self) -> None:
+        self.pos = self.pos + (self.target_pos - self.pos) * 0.2
+        if self.pos.distance_squared_to(self.target_pos) < 1:
+            self.pos = self.target_pos
     
 
 class Vacant(Card):
     def __init__(self, pos: Vector2 = Vector2(0,0)):
         super().__init__(Rank.NONE, Suit.NONE)
-        self.pos = pos
+        self.target_pos = pos
 
     def __repr__(self):
         return "Vacant"

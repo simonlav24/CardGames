@@ -6,14 +6,12 @@ from utils import Vector2
 from card import Card
 
 
-class AnimateCard:
-    def __init__(self, target: Card, start: Vector2, end: Vector2, delay: int = 0):
-        self.target = target
-        self.start = start.copy()
-        self.end = end.copy()
+class DelayedPosCard:
+    def __init__(self, card: Card, pos: Vector2, delay: int = 0):
+        self.card = card
+        self.pos = pos.copy()
         self.delay = delay
 
-        self.current_pos: Vector2 = start
         self.finished = False
 
     def step(self):
@@ -24,16 +22,9 @@ class AnimateCard:
             self.delay -= 1
             return
         
-        self.target.is_locked = True
-        self.current_pos += (self.end - self.current_pos) * 0.2
-
-        if (self.current_pos - self.end).length() < 1:
-            self.current_pos = self.end
-            self.finished = True
-
-        self.target.set_pos(self.current_pos)
+        self.card.set_pos(self.pos)
+        self.finished = True
         
     def is_done(self) -> bool:
-        self.target.is_locked = False
         return self.finished
         

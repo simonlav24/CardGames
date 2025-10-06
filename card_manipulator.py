@@ -5,7 +5,7 @@ from pygame import Rect
 
 from card import Card, CARD_SIZE, Rank
 from rules import RuleSet
-from events import post_event, AnimationEvent, DoubleClickedCard, ClickedCard
+from events import post_event, DelayedSetPosEvent, DoubleClickedCard, ClickedCard
 
 DEBUG = False
 
@@ -42,7 +42,7 @@ class CardManipulator:
             self.selected_card = closest_card
 
     def on_mouse_press(self, pos: Vector2) -> None:
-        if self.selected_card is None or self.selected_card.rank == Rank.NONE:
+        if self.selected_card is None:
             return
         
         post_event(ClickedCard(card=self.selected_card))
@@ -97,10 +97,8 @@ class CardManipulator:
 
     def animate_sequence_to_pos(self, card: Card, end_pos: Vector2):
         for i, linked_card in enumerate(card.iterate_down()):
-            event = AnimationEvent(card=linked_card, start_pos=linked_card.pos, end_pos=end_pos, delay=i * 2)
+            event = DelayedSetPosEvent(card=linked_card, pos=end_pos, delay=i * 2)
             post_event(event)
-            # custom_event = pygame.event.Event(pygame.USEREVENT, {"key": "animation", "card": linked_card, "start_pos": linked_card.pos, "end_pos": end_pos, "delay": i * 2})
-            # pygame.event.post(custom_event)
             end_pos = end_pos + card.link_offset
 
         
@@ -132,7 +130,7 @@ class CardManipulator:
         if card.rank == Rank.NONE:
             return
 
-        card.set_pos(pos)
+        card.set_abs_pos(pos)
         next_card = card.get_next()
         if next_card is not None:
             self.drag_card(next_card, pos + next_card.get_prev().link_offset)

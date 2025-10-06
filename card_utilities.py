@@ -1,6 +1,6 @@
 
 from card import Card
-from events import post_event, MoveToTopEvent, AnimationEvent
+from events import post_event, MoveToTopEvent, DelayedSetPosEvent
 
 def animate_and_relink(moved_card: Card, parent_card: Card, delay: int=0) -> None:
     # break link to parent
@@ -14,7 +14,7 @@ def animate_and_relink(moved_card: Card, parent_card: Card, delay: int=0) -> Non
     delay = delay
     pos = parent_card.pos + parent_card.link_offset
 
-    event = AnimationEvent(moved_card, moved_card.pos, pos, delay=delay)
+    event = DelayedSetPosEvent(moved_card, pos, delay=delay)
     post_event(event)
 
     event = MoveToTopEvent(moved_card)

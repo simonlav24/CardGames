@@ -1,8 +1,10 @@
 
+from math import sin, pi
+import time
+
 from utils import Vector2 
 
-from card import Card, CARD_SIZE
-from events import MoveToTopEvent, post_event
+from card import Card, CARD_SIZE, rank_translate_ace_high
 from card_container import CardContainer
 
 class HandCards(CardContainer):
@@ -11,24 +13,49 @@ class HandCards(CardContainer):
         super().__init__()
         # center pos
         self.pos = Vector2()
-        self.target_positions: list[Vector2] = []
         self.margin = - CARD_SIZE[0] // 2
-        # self.margin = 10
+        self.rank_tranlsate = rank_translate_ace_high
+        self.selected_cards: list[Card] = []
+        self.is_turn: bool = False
+        self.time = 0
     
     def set_pos(self, pos: Vector2) -> None:
         self.pos = pos.copy()
 
+    def append(self, card):
+        super().append(card)
+        # sort by rank
+        self.cards.sort(key=lambda c: self.rank_tranlsate(c.rank))
+        self._recalculate_depth()
+    
+    def remove(self, card):
+        super().remove(card)
+        if card in self.selected_cards:
+            self.selected_cards.remove(card)
+
     def step(self):
         num_of_cards = len(self.cards)
         width = num_of_cards * CARD_SIZE[0] + (num_of_cards - 1) * self.margin
-        start_pos = self.pos + Vector2(- width // 2)
-        self.target_positions.clear()
-        for i in range(num_of_cards):
+        start_pos = self.pos + Vector2(- width // 2, 0)
+
+        for i, card in enumerate(self.cards):
             pos = start_pos + Vector2(self.margin + CARD_SIZE[0], 0) * i
-            self.target_positions.append(pos)
-        
-        for card, target_pos in zip(self.cards, self.target_positions):
-            card_pos = card.get_pos()
-            pos = card_pos + (target_pos - card_pos) * 0.2
+            if self.is_turn:
+                pos += Vector2(0, 2 * sin(10 * time.time()))
+            if card in self.selected_cards:
+                pos += Vector2(0, -10)
             card.set_pos(pos)
         
+    def toggle_select(self, card: Card) -> None:
+        if card not in self.cards:
+            return
+        if card in self.selected_cards:
+            self.selected_cards.remove(card)
+        else:
+            self.selected_cards.append(card)
+    
+    def get_selected(self) -> list[Card]:
+        return self.selected_cards.copy()
+    
+    def toggle_turn(self) -> None:
+        self.is_turn = not self.is_turn

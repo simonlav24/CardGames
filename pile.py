@@ -16,6 +16,11 @@ class Pile(CardContainer):
         super().append(card)
         self.get_top().link_card(card)
 
+    def __contains__(self, card):
+        if card is self.vacant:
+            return True
+        return super().__contains__(card)
+
     def get_top(self) -> Card:
         return self.vacant.get_bottom_link()
     

@@ -5,12 +5,12 @@ from enum import Enum
 import pygame
 from utils import Vector2
 
-from animation import AnimateCard
+from animation import DelayedPosCard
 from card import Card
 
 
 class EventType(Enum):
-    ADD_ANIMATION = 1
+    DELAYED_SET_POS = 1
     MOVE_TO_TOP = 2
     SEQUENCE_COMPLETE = 3
     DOUBLE_CLICK_CARD = 4
@@ -22,15 +22,14 @@ class Event:
     pass
 
 @dataclass
-class AnimationEvent(Event):
+class DelayedSetPosEvent(Event):
     card: Card
-    start_pos: Vector2
-    end_pos: Vector2
-    type: EventType = EventType.ADD_ANIMATION
+    pos: Vector2
     delay: int = 0
+    type: EventType = EventType.DELAYED_SET_POS
 
-    def create_animation(self) -> AnimateCard:
-        return AnimateCard(self.card, self.start_pos, self.end_pos, self.delay)
+    def create_element(self) -> DelayedPosCard:
+        return DelayedPosCard(self.card, self.pos, self.delay)
 
 
 @dataclass

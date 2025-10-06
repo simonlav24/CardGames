@@ -2,11 +2,12 @@
 
 from utils import Vector2
 
+import game_globals
 from game_base import GameBase
 from custom_random import shuffle
 from card import Card, Vacant, Rank, Suit, create_single_suit_deck, CARD_SIZE
 from rules import RuleSet
-from events import post_event, Event, EventType, AnimationEvent, MoveToTopEvent, SequenceCompleteEvent
+from events import post_event, Event, EventType, DelayedSetPosEvent, MoveToTopEvent, SequenceCompleteEvent
 
 
 class SpiderRuleSet(RuleSet):
@@ -76,6 +77,9 @@ class SpiderGame(GameBase):
             king = event.main_card
             self.complete_sequence(king)
 
+    def on_key_press(self, key):
+        if key == game_globals.KEY_D:
+            self.deal_from_deck()
 
     def complete_sequence(self, king: Card) -> None:
         # find vacant ending row
@@ -96,12 +100,12 @@ class SpiderGame(GameBase):
         pos = vacant.pos + vacant.link_offset
         while current_card is not None:
 
-            event = AnimationEvent(current_card, current_card.pos, pos, delay=delay)
+            event = DelayedSetPosEvent(current_card, pos, delay=delay)
             post_event(event)
 
             event = MoveToTopEvent(current_card)
             post_event(event)
-
+            # TODO: bug here
             current_card = current_card.get_next()
             delay += 3
             pos = pos + current_card.link_offset
@@ -117,7 +121,7 @@ class SpiderGame(GameBase):
             bottom_vacant.link_card(card)
             card.face_up = True
 
-            event = AnimationEvent(card, card.pos, bottom_vacant.pos + bottom_vacant.link_offset, delay=i * 3)
+            event = DelayedSetPosEvent(card, bottom_vacant.pos + bottom_vacant.link_offset, delay=i * 3)
             post_event(event)
 
             event = MoveToTopEvent(card)
