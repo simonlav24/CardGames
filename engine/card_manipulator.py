@@ -1,11 +1,11 @@
 
 import pygame
-from utils import Vector2
+from utils.utils import Vector2
 from pygame import Rect
 
-from card import Card, CARD_SIZE, Rank
-from rules import RuleSet
-from events import post_event, DelayedSetPosEvent, DoubleClickedCard, ClickedCard
+from core.card import Card, CARD_SIZE, Rank
+from engine.rules import RuleSet
+from engine.events import post_event, DelayedSetPosEvent, DoubleClickedCard, ClickedCard
 
 DEBUG = False
 

@@ -1,8 +1,8 @@
 
 
 
-from card import Card
-from events import post_event, MoveToTopEvent
+from core.card import Card
+from engine.events import post_event, MoveToTopEvent
 
 class CardContainer:
     def __init__(self):

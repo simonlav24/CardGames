@@ -2,10 +2,10 @@
 from math import sin, pi
 import time
 
-from utils import Vector2 
+from utils.utils import Vector2 
 
-from card import Card, CARD_SIZE, rank_translate_ace_high
-from card_container import CardContainer
+from core.card import Card, CARD_SIZE, rank_translate_ace_high
+from core.card_container import CardContainer
 
 class HandCards(CardContainer):
     ''' cards held in hand '''

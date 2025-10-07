@@ -1,9 +1,9 @@
 
 from typing import Protocol
 
-from utils import Vector2
+from utils.utils import Vector2
 
-from card import Card
+from core.card import Card
 
 
 class DelayedPosCard:

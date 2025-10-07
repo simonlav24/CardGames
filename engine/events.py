@@ -3,10 +3,10 @@ from dataclasses import dataclass
 from enum import Enum
 
 import pygame
-from utils import Vector2
+from utils.utils import Vector2
 
-from animation import DelayedPosCard
-from card import Card
+from core.animation import DelayedPosCard
+from core.card import Card
 
 
 class EventType(Enum):

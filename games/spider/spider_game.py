@@ -1,13 +1,13 @@
 
 
-from utils import Vector2
+from utils.utils import Vector2
 
 import game_globals
-from game_base import GameBase
-from custom_random import shuffle
-from card import Card, Vacant, Rank, Suit, create_single_suit_deck, CARD_SIZE
-from rules import RuleSet
-from events import post_event, Event, EventType, DelayedSetPosEvent, MoveToTopEvent, SequenceCompleteEvent
+from engine.game_base import GameBase
+from utils.custom_random import shuffle
+from core.card import Card, Vacant, Rank, Suit, create_single_suit_deck, CARD_SIZE
+from engine.rules import RuleSet
+from engine.events import post_event, Event, EventType, DelayedSetPosEvent, MoveToTopEvent, SequenceCompleteEvent
 
 
 class SpiderRuleSet(RuleSet):

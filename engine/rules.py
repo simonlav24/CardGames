@@ -1,5 +1,5 @@
 
-from card import Card, Rank, Suit
+from core.card import Card, Rank, Suit
 
 class RuleSet:
     def __init__(self):

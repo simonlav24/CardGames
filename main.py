@@ -3,13 +3,13 @@ import sys
 
 import pygame
 
-import custom_random
+import utils.custom_random as custom_random
 import game_globals
-from card import draw_card
+from utils.card_draw import draw_card
 
-from spider_game import SpiderGame
-from klondike_game import KlondikeGame
-from shithead_game import ShitheadGame
+from games.spider.spider_game import SpiderGame
+from games.klondike.klondike_game import KlondikeGame
+from games.shithead.shithead_game import ShitheadGame
 
 
 def main():

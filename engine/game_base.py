@@ -1,12 +1,12 @@
 
 
 
-from utils import Vector2
+from utils.utils import Vector2
 
-from card import Card
-from card_manipulator import CardManipulator
-from events import EventType, Event
-from animation import DelayedPosCard
+from core.card import Card
+from engine.card_manipulator import CardManipulator
+from engine.events import EventType, Event
+from core.animation import DelayedPosCard
 
 class GameBase:
     def __init__(self):

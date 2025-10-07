@@ -1,6 +1,6 @@
 
-from card import Card
-from events import post_event, MoveToTopEvent, DelayedSetPosEvent
+from core.card import Card
+from engine.events import post_event, MoveToTopEvent, DelayedSetPosEvent
 
 def animate_and_relink(moved_card: Card, parent_card: Card, delay: int=0) -> None:
     # break link to parent

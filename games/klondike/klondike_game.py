@@ -1,14 +1,14 @@
 
 
-from utils import Vector2
+from utils.utils import Vector2
 
 import game_globals
-from game_base import GameBase
-from custom_random import shuffle
-from card import Card, Vacant, Rank, Suit, create_deck, CARD_SIZE
-from rules import RuleSet
-from events import post_event, Event, EventType, DelayedSetPosEvent, MoveToTopEvent
-from card_utilities import animate_and_relink
+from engine.game_base import GameBase
+from utils.custom_random import shuffle
+from core.card import Card, Vacant, Rank, Suit, create_deck, CARD_SIZE
+from engine.rules import RuleSet
+from engine.events import post_event, Event, EventType, DelayedSetPosEvent, MoveToTopEvent
+from core.card_utilities import animate_and_relink
 
 class KlondikeRuleSet(RuleSet):
     def __init__(self):
