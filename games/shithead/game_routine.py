@@ -37,9 +37,12 @@ class GameRoutine:
         self.current_player_index = (self.current_player_index + 1) % self.num_of_players
         current_player = self.players[self.current_player_index]
         current_player.toggle_turn()
+        self.reset_turn()
+        
+    def reset_turn(self) -> None:
+        current_player = self.players[self.current_player_index]
         if current_player.is_ai():
             self.event = {'time': 60, 'function': current_player.ai_play, 'arg': self.get_pile_top_effective_rank()}
-        
 
     def can_play_card(self, card: Card) -> bool:
         # can always play special cards
@@ -162,6 +165,8 @@ class GameRoutine:
         # advance turn
         if advance_turn:
             self.end_turn()
+        else:
+            self.reset_turn()
 
         print(f'player {self.current_player_index + 1} turn')
 

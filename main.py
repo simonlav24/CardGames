@@ -28,7 +28,7 @@ def main():
     FPS = 60
     DOUBLE_CLICK_INTERVAL = 400
 
-    game = ShitheadGame()
+    game = KlondikeGame()
     cards = game.setup_game()
 
     # Main loop
