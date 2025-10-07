@@ -2,15 +2,14 @@
 
 
 
-from utils.utils import Vector2
+from utils import Vector2, shuffle
 from game_globals import win_width, win_height
-from engine.game_base import GameBase
-from utils.custom_random import shuffle
-from core.card import Card, Vacant, Rank, create_deck, CARD_SIZE, rank_translate_ace_high
-from engine.rules import RuleSet
-from engine.events import post_event, EventType, DelayedSetPosEvent
-from core.pile import Pile
+
+from core import Card, Vacant, create_deck, CARD_SIZE, Pile
+from engine import RuleSet, EventType, GameBase
+ 
 from games.shithead.player import Player
+from games.shithead.ai_player import AiPlayer
 from games.shithead.game_routine import GameRoutine
 
 
@@ -33,13 +32,7 @@ class ShitheadGame(GameBase):
         self.pile = Pile()
         self.burn_vacant = Vacant()
 
-        # TODO: refactor these
         self.game_routine = GameRoutine()
-        # self.game_routine.players.append()
-        # self.game_routine.players_hands.append(self.player_two_cards)
-        # self.game_routine.pile = self.pile
-        # self.game_routine.deck = self.deck
-        # self.game_routine.burn_vacant = self.burn_vacant
 
     def handle_event(self, event):
         super().handle_event(event)
@@ -84,15 +77,23 @@ class ShitheadGame(GameBase):
             {
                 'lucky': Vector2(win_width // 2 - player_width // 2, win_height - margin - CARD_SIZE[1] - margin * 4),
                 'hand': Vector2(win_width // 2, win_height - margin - CARD_SIZE[1] * 2 - margin * 5),
+                'ai': False
             },
             {
                 'lucky': Vector2(win_width // 2 - player_width // 2, margin),
                 'hand': Vector2(win_width // 2, margin + CARD_SIZE[1] + margin * 5),
+                'ai': True
             }
         ]
         
         for positions in player_positions:
-            player = Player()
+            ai = None
+            if positions['ai']:
+                ai = AiPlayer()
+            player = Player(ai=ai)
+            if positions['ai']:
+                ai.initialize(player.get_hand(), self.pile.vacant)
+
             self.game_routine.add_player(player)
 
             for i in range(3):
@@ -107,7 +108,7 @@ class ShitheadGame(GameBase):
                 vacant.link_card(lucky_flipped)
 
                 lucky_faced = self.deck.pop(0)
-                player.deal_first_lucky_card(lucky_flipped)
+                player.deal_first_lucky_card(lucky_faced)
                 lucky_faced.flip()
                 lucky_faced.set_pos(pos + lucky_flipped.link_offset * 2)
                 lucky_flipped.link_card(lucky_faced)

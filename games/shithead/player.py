@@ -1,8 +1,8 @@
 
 from enum import Enum
 
-from core import HandCards, Card
-
+from core import HandCards, Card, Rank
+from games.shithead.ai_player import AiPlayer
 
 class GameStage(Enum):
     CARD_IN_HAND = 0
@@ -11,10 +11,17 @@ class GameStage(Enum):
 
 
 class Player:
-    def __init__(self):
+    def __init__(self, ai: AiPlayer=None):
         self.hand_cards = HandCards()
         self.first_level_lucky: list[Card] = []
         self.second_level_lucky: list[Card] = []
+        self.ai: AiPlayer = ai
+
+    def is_ai(self) -> bool:
+        return self.ai is not None
+    
+    def ai_play(self, pile_rank: Rank) -> None:
+        self.ai.start_turn(pile_rank)
 
     def deal_first_lucky_card(self, card: Card) -> None:
         self.first_level_lucky.append(card)

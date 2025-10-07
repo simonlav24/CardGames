@@ -1,13 +1,10 @@
 
-from utils.utils import Vector2
-from game_globals import win_width, win_height
-from engine.game_base import GameBase
-from utils.custom_random import shuffle
-from core.card import Card, Vacant, Rank, create_deck, CARD_SIZE, rank_translate_ace_high
-from engine.rules import RuleSet
-from engine.events import post_event, EventType, DelayedSetPosEvent
-from core.hand_cards import HandCards
-from core.pile import Pile
+
+
+
+from core import Card, Vacant, Rank, rank_translate_ace_high, Pile
+from engine import post_event, DelayedSetPosEvent
+
 from games.shithead.player import Player, GameStage
 
 
@@ -21,6 +18,8 @@ class GameRoutine:
         self.pile: Pile = None
         self.burn_vacant: Vacant = None
         self.rank_translate = rank_translate_ace_high
+
+        self.event = None
 
     def initialize(self, deck: list[Card], pile: Pile, burn_vacant: Vacant) -> None:
         self.deck = deck
@@ -36,7 +35,11 @@ class GameRoutine:
     def end_turn(self) -> None:
         self.players[self.current_player_index].toggle_turn()
         self.current_player_index = (self.current_player_index + 1) % self.num_of_players
-        self.players[self.current_player_index].toggle_turn()       
+        current_player = self.players[self.current_player_index]
+        current_player.toggle_turn()
+        if current_player.is_ai():
+            self.event = {'time': 60, 'function': current_player.ai_play, 'arg': self.get_pile_top_effective_rank()}
+        
 
     def can_play_card(self, card: Card) -> bool:
         # can always play special cards
@@ -83,10 +86,19 @@ class GameRoutine:
         
         # late game, choose from first pile
         if current_player.get_game_stage() == GameStage.FIRST_LEVEL_LUCKY:
-            ...
+            if card in current_player.first_level_lucky:
+                # move card to hand
+                card.break_upper_link()
+                current_player.first_level_lucky.remove(card)
+                current_player.get_hand().append(card)
         
         elif current_player.get_game_stage() == GameStage.SECOND_LEVEL_LUCKY:
-            ...
+            if card in current_player.second_level_lucky:
+                # move card to hand
+                card.break_upper_link()
+                card.flip()
+                current_player.second_level_lucky.remove(card)
+                current_player.get_hand().append(card)
         
         
 
@@ -177,3 +189,8 @@ class GameRoutine:
     def step(self) -> None:
         for player in self.players:
             player.step()
+        if self.event:
+            self.event['time'] -= 1
+            if self.event['time'] <= 0:
+                self.event['function'](self.event['arg'])
+                self.event = None
