@@ -86,7 +86,7 @@ class Card:
         self.target_pos = Vector2()
 
         self.link_offset = DEFAULT_LINK_OFFSET
-        self.is_locked: bool = False
+        self.is_hidden = False
 
     def set_link_offset(self, offset: Vector2) -> None:
         self.link_offset = offset.copy()

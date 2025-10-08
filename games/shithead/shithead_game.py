@@ -119,6 +119,8 @@ class ShitheadGame(GameBase):
                 hand.set_pos(pos)
                 hand_card = self.deck.pop(0)
                 hand_card.flip()
+                if positions['ai']:
+                    hand_card.is_hidden = True
                 hand.append(hand_card)
 
         self.game_routine.initialize(self.deck, self.pile, self.burn_vacant)

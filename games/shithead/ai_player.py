@@ -111,7 +111,8 @@ class AiPlayer(PlayerBase):
         if self.get_game_stage() == GameStage.FIRST_LEVEL_LUCKY:
             # pick anyone
             self.pick_lucky(self.first_level_lucky)
-
+        for card in self.hand_cards:
+            card.is_hidden = True
         post_event(DoubleClickedCard(self.pile_vacant))
 
     def start_turn(self) -> bool:
@@ -128,6 +129,10 @@ class AiPlayer(PlayerBase):
         rand_choice = randint(0, len(group) - 1)
         card = group[rand_choice]
         post_event(ClickedCard(card))
+
+    def deal(self, card: Card) -> None:
+        self.hand_cards.append(card)
+        card.is_hidden = True
 
 
 

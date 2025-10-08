@@ -46,8 +46,14 @@ class PlayerBase:
 
     def start_turn(self) -> bool:
         ...
+    
+    def deal(self, card: Card) -> None:
+        ...
 
 
 class Player(PlayerBase):
     def start_turn(self) -> bool:
         return True
+    
+    def deal(self, card: Card) -> None:
+        self.hand_cards.append(card)

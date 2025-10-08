@@ -14,7 +14,7 @@ def draw_card(surface: pygame.Surface, card: Card):
         pygame.draw.rect(surface, (50, 50, 50), card_rect)
         pygame.draw.rect(surface, (0, 0, 0), card_rect, 2)
     else:
-        if card.face_up:
+        if card.face_up and not card.is_hidden:
             surface.blit(game_globals.card_sprites, card_rect, get_card_sprite_rect(card))
         else:
             surface.blit(game_globals.card_sprites, card_rect, get_card_sprite_rect(None))

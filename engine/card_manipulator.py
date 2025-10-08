@@ -38,7 +38,7 @@ class CardManipulator:
         self.selected_card = None
         closest_card = self.find_card_at_pos(pos)
         
-        if closest_card is not None and not closest_card.is_locked:
+        if closest_card is not None:
             self.selected_card = closest_card
 
     def on_mouse_press(self, pos: Vector2) -> None:

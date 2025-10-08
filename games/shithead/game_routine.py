@@ -117,12 +117,14 @@ class GameRoutine:
         ''' play the card into the pile '''
         print(f'play card {cards[0]}')
         advance_turn = True
-        hands = self.players[self.current_player_index].get_hand()
+        player = self.players[self.current_player_index]
+        hands = player.get_hand()
         pile_top = self.pile.get_top()
 
         # move card to pile
         for i, card in enumerate(cards):
             hands.remove(card)
+            card.is_hidden = False
             self.pile.append(card)
             card.set_pos(pile_top.pos + pile_top.link_offset * (i + 1))
 
@@ -131,7 +133,8 @@ class GameRoutine:
             while len(hands) < 3:
                 drawn_card = self.deck.pop(0)
                 drawn_card.flip()
-                hands.append(drawn_card)
+                player.deal(drawn_card)
+                # hands.append(drawn_card)
 
         # check for effects
         match cards[0].rank:
@@ -184,11 +187,11 @@ class GameRoutine:
         self.pile.clear()
 
     def pick_up_pile(self) -> None:
-        hands = self.players[self.current_player_index].get_hand()
+        player = self.players[self.current_player_index]
         for card in self.pile:
             card.break_lower_link()
             card.break_upper_link()
-            hands.append(card)
+            player.deal(card)
         self.pile.clear()
         
         self.end_turn()
