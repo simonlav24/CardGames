@@ -87,12 +87,12 @@ class ShitheadGame(GameBase):
         ]
         
         for positions in player_positions:
-            ai = None
             if positions['ai']:
-                ai = AiPlayer()
-            player = Player(ai=ai)
-            if positions['ai']:
-                ai.initialize(player.get_hand(), self.pile.vacant)
+                player = AiPlayer()
+            else:
+                player = Player()
+            
+            player.initialize(self.pile.vacant)
 
             self.game_routine.add_player(player)
 

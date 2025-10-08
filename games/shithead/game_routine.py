@@ -33,6 +33,10 @@ class GameRoutine:
         self.players[self.current_player_index].toggle_turn()
 
     def end_turn(self) -> None:
+        if self.players[self.current_player_index].get_game_stage() == GameStage.END:
+            print(f'Player {self.current_player_index + 1} Won!')
+            return
+
         self.players[self.current_player_index].toggle_turn()
         self.current_player_index = (self.current_player_index + 1) % self.num_of_players
         current_player = self.players[self.current_player_index]
@@ -41,8 +45,7 @@ class GameRoutine:
         
     def reset_turn(self) -> None:
         current_player = self.players[self.current_player_index]
-        if current_player.is_ai():
-            self.event = {'time': 60, 'function': current_player.ai_play, 'arg': self.get_pile_top_effective_rank()}
+        self.event = {'time': 60, 'function': current_player.start_turn}
 
     def can_play_card(self, card: Card) -> bool:
         # can always play special cards
@@ -102,7 +105,6 @@ class GameRoutine:
                 card.flip()
                 current_player.second_level_lucky.remove(card)
                 current_player.get_hand().append(card)
-        
         
 
     def get_pile_top_effective_rank(self) -> Rank:
@@ -196,6 +198,12 @@ class GameRoutine:
             player.step()
         if self.event:
             self.event['time'] -= 1
-            if self.event['time'] <= 0:
-                self.event['function'](self.event['arg'])
+            if self.event['time'] > 0:
+                return
+
+            is_done = self.event['function']()
+            if is_done:
                 self.event = None
+            else:
+                self.reset_turn()
+
