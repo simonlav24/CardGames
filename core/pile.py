@@ -12,11 +12,11 @@ class Pile(CardContainer):
     def set_pos(self, pos: Vector2):
         self.vacant.set_pos(pos)
         
-    def append(self, card):
+    def append(self, card) -> None:
         super().append(card)
         self.get_top().link_card(card)
 
-    def __contains__(self, card):
+    def __contains__(self, card) -> bool:
         if card is self.vacant:
             return True
         return super().__contains__(card)

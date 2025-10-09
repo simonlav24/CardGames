@@ -11,6 +11,7 @@ from utils.card_draw import draw_card
 from games.spider.spider_game import SpiderGame
 from games.klondike.klondike_game import KlondikeGame
 from games.shithead.shithead_game import ShitheadGame
+from games.durak.durak_game import DurakGame
 
 
 def main():
@@ -30,7 +31,7 @@ def main():
     DOUBLE_CLICK_INTERVAL = 400
     DOUBLE_CLICK_OFFSET_SQUARED = 25
 
-    game = KlondikeGame()
+    game = DurakGame()
     cards = game.setup_game()
 
     # Main loop

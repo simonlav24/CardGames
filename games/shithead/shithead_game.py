@@ -71,7 +71,7 @@ class ShitheadGame(GameBase):
         for card in cards:
             card.set_pos(deck_pos.copy())
         
-        # currently for two players
+        # players
         player_width = CARD_SIZE[0] * 3 + margin * 2
         player_positions = [
             {

@@ -18,6 +18,7 @@ class HandCards(CardContainer):
         self.selected_cards: list[Card] = []
         self.is_turn: bool = False
         self.time = 0
+        self.multi_select = True
     
     def set_pos(self, pos: Vector2) -> None:
         self.pos = pos.copy()
@@ -52,7 +53,11 @@ class HandCards(CardContainer):
         if card in self.selected_cards:
             self.selected_cards.remove(card)
         else:
-            self.selected_cards.append(card)
+            if self.multi_select:
+                self.selected_cards.append(card)
+            else:
+                self.selected_cards = [card]
+            
     
     def get_selected(self) -> list[Card]:
         return self.selected_cards.copy()

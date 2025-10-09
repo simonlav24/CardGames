@@ -113,7 +113,7 @@ class Card:
         return last
 
     def is_linked(self) -> bool:
-        # check if linked from above
+        ''' check if linked from above '''
         return self.linked_up is not None
     
     def get_next(self) -> 'Card | None':
@@ -191,6 +191,9 @@ class Vacant(Card):
 
     def __repr__(self):
         return "Vacant"
+    
+    def is_free(self) -> bool:
+        return self.get_next() is None
 
 
 

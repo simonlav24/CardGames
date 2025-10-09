@@ -5,12 +5,12 @@
 from core import Card, Vacant, Rank, rank_translate_ace_high, Pile
 from engine import post_event, DelayedSetPosEvent
 
-from games.shithead.player import Player, GameStage
+from games.shithead.player import PlayerBase, GameStage
 
 
 class GameRoutine:
     def __init__(self):
-        self.players: list[Player] = []
+        self.players: list[PlayerBase] = []
         self.current_player_index = 0
 
         self.deck: list[Card] = None
@@ -25,7 +25,7 @@ class GameRoutine:
         self.pile = pile
         self.burn_vacant = burn_vacant
 
-    def add_player(self, player: Player) -> None:
+    def add_player(self, player: PlayerBase) -> None:
         self.players.append(player)
 
     def start(self) -> None:
