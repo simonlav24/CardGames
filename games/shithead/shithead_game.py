@@ -80,10 +80,21 @@ class ShitheadGame(GameBase):
                 'ai': False
             },
             {
+                'lucky': Vector2(margin, win_height // 2 - 2 * CARD_SIZE[1]),
+                'hand': Vector2(2 * (CARD_SIZE[0] + margin), win_height // 2),
+                'ai': True
+            },
+            {
                 'lucky': Vector2(win_width // 2 - player_width // 2, margin),
                 'hand': Vector2(win_width // 2, margin + CARD_SIZE[1] + margin * 5),
                 'ai': True
-            }
+            },
+            {
+                'lucky': Vector2(win_width - 3 * (CARD_SIZE[0] + margin), win_height // 2 - 2 * CARD_SIZE[1]),
+                'hand': Vector2(win_width - 2 * (CARD_SIZE[0] + margin), win_height // 2),
+                'ai': True
+            },
+            
         ]
         
         for positions in player_positions:

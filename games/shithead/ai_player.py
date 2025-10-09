@@ -110,7 +110,8 @@ class AiPlayer(PlayerBase):
         ''' pick up pile, return True if ended turn '''
         if self.get_game_stage() == GameStage.FIRST_LEVEL_LUCKY:
             # pick anyone
-            self.pick_lucky(self.first_level_lucky)
+            picked = self.pick_lucky(self.first_level_lucky)
+            picked.is_hidden = True
         for card in self.hand_cards:
             card.is_hidden = True
         post_event(DoubleClickedCard(self.pile_vacant))
@@ -124,11 +125,12 @@ class AiPlayer(PlayerBase):
             pile_top = pile_top.get_prev()
         return pile_top.rank
     
-    def pick_lucky(self, group: list[Card]) -> None:
-        ''' at the stage of second lucky, pick random card '''
+    def pick_lucky(self, group: list[Card]) -> Card:
+        ''' at the stage of picking from lucky pile, pick random card '''
         rand_choice = randint(0, len(group) - 1)
         card = group[rand_choice]
         post_event(ClickedCard(card))
+        return card
 
     def deal(self, card: Card) -> None:
         self.hand_cards.append(card)

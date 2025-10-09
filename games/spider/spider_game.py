@@ -105,10 +105,9 @@ class SpiderGame(GameBase):
 
             event = MoveToTopEvent(current_card)
             post_event(event)
-            # TODO: bug here
+            pos = pos + current_card.link_offset
             current_card = current_card.get_next()
             delay += 3
-            pos = pos + current_card.link_offset
 
 
     def deal_from_deck(self):

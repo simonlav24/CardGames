@@ -10,7 +10,6 @@ from games.shithead.player import Player, GameStage
 
 class GameRoutine:
     def __init__(self):
-        self.num_of_players = 2
         self.players: list[Player] = []
         self.current_player_index = 0
 
@@ -38,7 +37,7 @@ class GameRoutine:
             return
 
         self.players[self.current_player_index].toggle_turn()
-        self.current_player_index = (self.current_player_index + 1) % self.num_of_players
+        self.current_player_index = (self.current_player_index + 1) % len(self.players)
         current_player = self.players[self.current_player_index]
         current_player.toggle_turn()
         self.reset_turn()
@@ -129,12 +128,12 @@ class GameRoutine:
             card.set_pos(pile_top.pos + pile_top.link_offset * (i + 1))
 
         # complete to hand
-        if len(self.deck) > 0:
-            while len(hands) < 3:
-                drawn_card = self.deck.pop(0)
-                drawn_card.flip()
-                player.deal(drawn_card)
-                # hands.append(drawn_card)
+        missing_cards_num = 3 - len(hands)
+        draw_cards_num = min(len(self.deck), missing_cards_num)
+        for i in range(draw_cards_num):
+            drawn_card = self.deck.pop(0)
+            drawn_card.flip()
+            player.deal(drawn_card)
 
         # check for effects
         match cards[0].rank:
