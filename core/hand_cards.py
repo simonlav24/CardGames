@@ -23,18 +23,23 @@ class HandCards(CardContainer):
     def set_pos(self, pos: Vector2) -> None:
         self.pos = pos.copy()
 
-    def append(self, card):
+    def append(self, card: Card) -> None:
         super().append(card)
         # sort by rank
         self.cards.sort(key=lambda c: self.rank_tranlsate(c.rank))
         self._recalculate_depth()
+        self._recalculate_pos()
     
-    def remove(self, card):
+    def remove(self, card: Card) -> None:
         super().remove(card)
         if card in self.selected_cards:
             self.selected_cards.remove(card)
+        self._recalculate_pos()
 
     def step(self):
+        self._recalculate_pos()
+
+    def _recalculate_pos(self):
         num_of_cards = len(self.cards)
         width = num_of_cards * CARD_SIZE[0] + (num_of_cards - 1) * self.margin
         start_pos = self.pos + Vector2(- width // 2, 0)

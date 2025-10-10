@@ -10,16 +10,19 @@ from core.card import Card
 
 
 class EventType(Enum):
+    NONE = 0
     DELAYED_SET_POS = 1
     MOVE_TO_TOP = 2
-    SEQUENCE_COMPLETE = 3
-    DOUBLE_CLICK_CARD = 4
-    CLICK_CARD = 5
+    MOVE_TO_BOTTOM = 3
+    SEQUENCE_COMPLETE = 4
+    DOUBLE_CLICK_CARD = 5
+    CLICK_CARD = 6
+    DROPPED_CARD = 7
 
 
 @dataclass
 class Event:
-    pass
+    ...
 
 @dataclass
 class DelayedSetPosEvent(Event):
@@ -39,6 +42,12 @@ class MoveToTopEvent(Event):
 
 
 @dataclass
+class MoveToBottomEvent(Event):
+    card: Card
+    type: EventType = EventType.MOVE_TO_BOTTOM
+
+
+@dataclass
 class SequenceCompleteEvent(Event):
     main_card: Card
     type: EventType = EventType.SEQUENCE_COMPLETE
@@ -55,6 +64,14 @@ class DoubleClickedCard(Event):
     card: Card
     type: EventType = EventType.DOUBLE_CLICK_CARD
 
+@dataclass
+class DroppedCardEvent(Event):
+    placed_card: Card
+    placed_upon: Card
+    last_pos: Vector2
+    last_parent: Card
+    legal_drop: bool
+    type: EventType = EventType.DROPPED_CARD
 
 def post_event(event: Event):
     custom_event = pygame.event.Event(pygame.USEREVENT, {"event": event})

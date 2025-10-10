@@ -14,7 +14,7 @@ from games.shithead.game_routine import GameRoutine
 
 
 class ShitheadRuleSet(RuleSet):
-    def can_link_cards(self, upper: Card, lower: Card) -> bool:
+    def can_drop_card(self, upper: Card, lower: Card) -> bool:
         return False
 
     def can_drag_card(self, card: Card) -> bool:

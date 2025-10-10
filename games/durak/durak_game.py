@@ -3,10 +3,10 @@
 
 
 from utils import Vector2, shuffle
-from game_globals import win_width, win_height
+from game_globals import win_width, win_height, KEY_D
 
-from core import Card, Vacant, create_deck, CARD_SIZE, Suit
-from engine import RuleSet, EventType, GameBase
+from core import Card, Vacant, create_deck, CARD_SIZE, Suit, rank_translate_ace_high, Rank
+from engine import EventType, GameBase, DroppedCardEvent
  
 from games.durak.player import PlayerBase, Player
 # from games.durak.ai_player import AiPlayer
@@ -14,27 +14,21 @@ from games.durak.game_routine import GameRoutine
 from games.durak.durak_pot import DurakPot
 
 
-class ShitheadRuleSet(RuleSet):
-    def can_link_cards(self, upper: Card, lower: Card) -> bool:
-        return False
-
-    def can_drag_card(self, card: Card) -> bool:
-        return False
-
-
 
 class DurakGame(GameBase):
     def __init__(self):
         super().__init__()
-        self.rules = ShitheadRuleSet()
-        self.card_manipulator.set_rules(self.rules)
+        self.game_routine = GameRoutine()
+        self.card_manipulator.set_rules(self.game_routine)
 
         self.deck: list[Card] = []
         self.pot: DurakPot = None
         self.burn_vacant = Vacant()
         self.kozer: Suit = None
 
-        self.game_routine = GameRoutine()
+    def on_key_press(self, key: int) -> None:
+        if key == KEY_D:
+            self.game_routine.burn_pot()
 
     def handle_event(self, event):
         super().handle_event(event)
@@ -43,14 +37,24 @@ class DurakGame(GameBase):
             self.game_routine.clicked_on_card(event.card)
 
         if event.type == EventType.DOUBLE_CLICK_CARD:
-            ...
+            self.game_routine.pick_up_pot()
+
+        if event.type == EventType.DROPPED_CARD:
+            event: DroppedCardEvent = event
+            self.game_routine.on_placed_card_event(event.placed_card, event.placed_upon, event.last_pos, event.legal_drop)
     
     def step(self):
         super().step()
         self.game_routine.step()
 
     def setup_game(self) -> list[Card]:
-        cards = create_deck()
+        deck = create_deck()
+        cards: list[Card] = []
+        for card in deck:
+            if rank_translate_ace_high(card.rank) < rank_translate_ace_high(Rank.SIX):
+                continue
+            cards.append(card)
+        
         shuffle(cards)
         self.deck += cards.copy()
 
@@ -100,16 +104,16 @@ class DurakGame(GameBase):
 
             self.game_routine.add_player(player)
 
+            # deal cards
+            hand = player.get_hand()
+            pos = positions['hand']
+            hand.set_pos(pos)
             for i in range(6):
-                # hand cards
-                hand = player.get_hand()
-                pos = positions['hand']
-                hand.set_pos(pos)
-                hand_card = self.deck.pop()
-                hand_card.flip()
+                drawn_card = self.deck.pop()
+                drawn_card.flip()
                 if positions['ai']:
-                    hand_card.is_hidden = True
-                hand.append(hand_card)
+                    drawn_card.is_hidden = True
+                player.deal(drawn_card)
 
         self.game_routine.initialize(self.deck, self.pot, self.burn_vacant, self.kozer)
 

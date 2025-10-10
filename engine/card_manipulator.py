@@ -5,7 +5,13 @@ from pygame import Rect
 
 from core.card import Card, CARD_SIZE, Rank
 from engine.rules import RuleSet
-from engine.events import post_event, DelayedSetPosEvent, DoubleClickedCard, ClickedCard
+from engine.events import (
+    post_event, 
+    DelayedSetPosEvent, 
+    DoubleClickedCard, 
+    ClickedCard,
+    DroppedCardEvent
+)
 
 DEBUG = False
 
@@ -53,7 +59,8 @@ class CardManipulator:
         self.dragged_card = self.selected_card
         self.drag_offset = Vector2(pos) - self.dragged_card.pos
 
-        self.move_card_to_top(self.dragged_card)
+        if self.rules.move_to_front_on_drag:
+            self.move_card_to_top(self.dragged_card)
         
 
     def on_double_click(self, pos: Vector2):
@@ -76,24 +83,28 @@ class CardManipulator:
         card_to_link = self.dragged_card
         self.dragged_card = None
         self.drag_offset = Vector2(0, 0)
-        if self.is_linking:
-            potential_parent = self.find_card_at_pos(pos, exclude=card_to_link)
 
-            if potential_parent is None:
-                # card has not been placed
-                self.animate_sequence_to_pos(card_to_link, self._calc_previous_pos(card_to_link))
-                return
-            
-            else:
+        legal_drop = False
+
+        potential_parent = self.find_card_at_pos(pos, exclude=card_to_link)
+        previous_link = card_to_link.get_prev()
+
+        if potential_parent is not None:
+            if self.rules.can_drop_card(potential_parent, card_to_link):
                 # card is placed, link cards
-                previous_link = card_to_link.get_prev()
+                legal_drop = True
                 is_linked = self.link_cards(potential_parent, card_to_link)
                 if not is_linked:
-                    self.animate_sequence_to_pos(card_to_link, self._calc_previous_pos(card_to_link))
-                else:
-                    self.animate_sequence_to_pos(card_to_link, potential_parent.pos + potential_parent.link_offset)
-                    self.rules.on_place_card(card_to_link, previous_link)
+                    legal_drop = False
 
+        if legal_drop:
+            self.animate_sequence_to_pos(card_to_link, potential_parent.pos + potential_parent.link_offset)
+
+        if not legal_drop and self.rules.on_drop_return_to_previous_pos:
+            self.animate_sequence_to_pos(card_to_link, self.last_pos)
+        
+        post_event(DroppedCardEvent(card_to_link, potential_parent, self.last_pos, previous_link, legal_drop))
+            
 
     def animate_sequence_to_pos(self, card: Card, end_pos: Vector2):
         for i, linked_card in enumerate(card.iterate_down()):
@@ -119,7 +130,7 @@ class CardManipulator:
         if bottom_card is lower:
             return False
         
-        if not self.rules.can_link_cards(bottom_card, lower):
+        if not self.rules.can_drop_card(bottom_card, lower):
             return False
         
         is_linked = bottom_card.link_card(lower)

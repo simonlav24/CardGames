@@ -35,7 +35,7 @@ class PlayerBase:
         self.mode = PlayerMode.DEFEND
     
     def deal(self, card: Card) -> None:
-        ...
+        self.hand_cards.append(card)
 
 class Player(PlayerBase):
     ...

@@ -7,7 +7,7 @@ from engine.game_base import GameBase
 from utils.custom_random import shuffle
 from core.card import Card, Vacant, Rank, Suit, create_deck, CARD_SIZE
 from engine.rules import RuleSet
-from engine.events import post_event, Event, EventType, DelayedSetPosEvent, MoveToTopEvent
+from engine.events import post_event, Event, EventType, DelayedSetPosEvent, MoveToTopEvent, DroppedCardEvent
 from core.card_utilities import animate_and_relink
 
 class KlondikeRuleSet(RuleSet):
@@ -27,7 +27,7 @@ class KlondikeRuleSet(RuleSet):
             return True
         return False
 
-    def can_link_cards(self, upper: Card, lower: Card) -> bool:
+    def can_drop_card(self, upper: Card, lower: Card) -> bool:
         if upper in self.drawn_deck:
             return False
 
@@ -48,14 +48,6 @@ class KlondikeRuleSet(RuleSet):
         
         return False
 
-    def on_place_card(self, card: Card, previous_parent: Card | None):
-        if card in self.drawn_deck:
-            self.drawn_deck.remove(card) 
-        if previous_parent is None:
-            return
-        if not previous_parent.is_face_up():
-            previous_parent.flip()
-
     def can_drag_card(self, card: Card) -> bool:
         # can only drag face up cards
         if not card.is_face_up():
@@ -63,6 +55,19 @@ class KlondikeRuleSet(RuleSet):
 
         return True
     
+    def handle_event(self, event: Event) -> None:
+        super().handle_event(event)
+        if event.type == EventType.DROPPED_CARD:
+            event: DroppedCardEvent = event
+            if not event.legal_drop:
+                return
+            if event.placed_card in self.drawn_deck:
+                self.drawn_deck.remove(event.placed_card) 
+            if event.last_parent is None:
+                return
+            if not event.last_parent.is_face_up():
+                event.last_parent.flip()
+
 
 class KlondikeGame(GameBase):
     def __init__(self):
@@ -103,6 +108,7 @@ class KlondikeGame(GameBase):
     def handle_event(self, event: Event) -> None:
         super().handle_event(event)
 
+        self.rules.handle_event(event)
         if event.type == EventType.DOUBLE_CLICK_CARD:
             self.double_click_on_card(event.card)
 

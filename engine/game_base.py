@@ -25,6 +25,11 @@ class GameBase:
                 self.cards.remove(card)
                 self.cards.append(card)
 
+            case EventType.MOVE_TO_BOTTOM:
+                card = event.card
+                self.cards.remove(card)
+                self.cards.insert(0, card)
+
     def step(self):
         for element in self.elements:
             element.step()

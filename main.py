@@ -30,7 +30,7 @@ def main():
     FPS = 60
     DOUBLE_CLICK_INTERVAL = 400
     DOUBLE_CLICK_OFFSET_SQUARED = 25
-
+ 
     game = DurakGame()
     cards = game.setup_game()
 
@@ -58,7 +58,8 @@ def main():
                         Vector2(current_pos).distance_squared_to(last_click_pos) < DOUBLE_CLICK_OFFSET_SQUARED
                     ):
                         game.on_mouse_double_click(event.pos)
-                    game.on_mouse_press(event.pos)
+                    else:
+                        game.on_mouse_press(event.pos)
                     last_click_time = current_time
                     last_click_pos = event.pos
             elif event.type == pygame.MOUSEBUTTONUP:

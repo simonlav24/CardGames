@@ -3,8 +3,9 @@
 
 from enum import Enum
 
-from core import Card, Vacant, Rank, rank_translate_ace_high, Suit
-from engine import post_event, DelayedSetPosEvent
+from utils import Vector2
+from core import Card, Vacant, Rank, rank_translate_ace_high, Suit, move_cards_and_relink
+from engine import post_event, DelayedSetPosEvent, RuleSet
 
 from games.durak.player import PlayerBase
 from games.durak.durak_pot import DurakPot
@@ -14,8 +15,11 @@ class GameStage(Enum):
     FIRST_ATTACK = 1
     FREE_PLAY = 2
 
-class GameRoutine:
+class GameRoutine(RuleSet):
     def __init__(self):
+        super().__init__()
+        self.on_drop_return_to_previous_pos = True
+        self.move_to_front_on_drag = False
         self.players: list[PlayerBase] = []
         self.current_attacker_index = 0
 
@@ -34,6 +38,20 @@ class GameRoutine:
         self.burn_vacant = burn_vacant
         self.kozer = kozer
 
+    def can_drop_card(self, upper, lower) -> bool:
+        attack_card = upper
+        defend_card = lower
+        if (self.card_belongs_to(defend_card, self.get_defender()) and
+            attack_card in self.pot and
+            self.is_legal_defence(attack_card, defend_card)):
+            return True
+        return False
+
+    def can_drag_card(self, card: Card) -> bool:
+        if self.card_belongs_to(card, self.get_defender()):
+            return True
+        return False
+
     def add_player(self, player: PlayerBase) -> None:
         self.players.append(player)
 
@@ -42,7 +60,12 @@ class GameRoutine:
         self.game_mode = GameStage.FIRST_ATTACK
 
     def end_turn(self) -> None:
-        ...
+        self.current_attacker_index = (self.current_attacker_index + 1) % len(self.players)
+        self.game_mode = GameStage.FIRST_ATTACK
+
+    def end_turn_skip(self) -> None:
+        self.current_attacker_index = (self.current_attacker_index + 1) % len(self.players)
+        self.end_turn()
         
     def reset_turn(self) -> None:
         ...
@@ -54,9 +77,9 @@ class GameRoutine:
             return True
         return False
 
-    def place_attack_card_on_battle(self, card: Card) -> None:
+    def place_attack_card_on_battle(self, card: Card, attacker: PlayerBase) -> None:
         self.pot.place_attack(card)
-        self.get_attacker().hand_cards.remove(card)
+        attacker.hand_cards.remove(card)
 
     def place_defend_card_on_battle(self, attack_card: Card, defend_card: Card) -> None:
         self.pot.place_defend(attack_card, defend_card)
@@ -65,31 +88,40 @@ class GameRoutine:
     def get_defender(self) -> PlayerBase:
         return self.players[(self.current_attacker_index + 1) % len(self.players)]
 
-    def get_attacker(self) -> PlayerBase:
+    def get_main_attacker(self) -> PlayerBase:
         return self.players[self.current_attacker_index]
+    
+    def get_player_by_card(self, card: Card) -> PlayerBase:
+        for player in self.players:
+            if card in player.hand_cards:
+                return player
+        return None
+
+    def on_placed_card_event(self, placed_Card: Card, placed_upon: Card, last_pos: Vector2, legal_drop: bool) -> None:
+        defender = self.get_defender()
+        if (not self.card_belongs_to(placed_Card, defender) or 
+            placed_upon not in self.pot):
+            # card does not belong to defender
+            return
+        if legal_drop:
+            self.place_defend_card_on_battle(placed_upon, placed_Card)
 
     def clicked_on_card(self, card: Card) -> None:
         if self.game_mode == GameStage.FIRST_ATTACK:
-            if not self.card_belongs_to(card, self.get_attacker()):
+            if not self.card_belongs_to(card, self.get_main_attacker()):
                 # card does not belong to attacker
                 return
-            self.place_attack_card_on_battle(card)
+            self.place_attack_card_on_battle(card, self.get_main_attacker())
             self.game_mode = GameStage.FREE_PLAY
         
         elif self.game_mode == GameStage.FREE_PLAY:
-            # if card is of defender
-            defender = self.get_defender()
-            if self.card_belongs_to(card, defender):
-                defender.hand_cards.toggle_select(card)
-
-            # if card is in pot
-            if card in self.pot and self.pot.is_clear_for_defence(card):
-                selected_card = defender.hand_cards.get_selected()
-                if len(selected_card) == 0:
-                    return
-                defend_card = selected_card[0]
-                if self.is_legal_defence(card, defend_card):
-                    self.place_defend_card_on_battle(card, defend_card)
+            current_player = self.get_player_by_card(card)
+            if (current_player is not None and
+                current_player is not self.get_defender() and
+                card.rank in self.pot.get_ranks()):
+                # any attacker
+                attacker = self.get_player_by_card(card)
+                self.place_attack_card_on_battle(card, attacker)
 
     def is_legal_defence(self, attack_card: Card, defence_card: Card) -> bool:
         if (attack_card.suit == defence_card.suit and
@@ -100,30 +132,20 @@ class GameRoutine:
             return True
         return False
 
-    def burn_pile(self) -> None:
-        last_card = self.burn_vacant.get_bottom_link()
-        pos = last_card.get_pos()
-        self.pile.vacant.break_lower_link()
-        for i, card in enumerate(self.pile):
-            last_card.link_card(card)
-            post_event(DelayedSetPosEvent(card, pos + i * self.burn_vacant.link_offset, delay=30 + i))
-            last_card = card
-        
-        self.pile.clear()
-
-    def pick_up_pot(self) -> None:
-        player = self.players[self.current_player_index]
-        for card in self.pile:
-            card.break_lower_link()
-            card.break_upper_link()
-            player.deal(card)
-        self.pile.clear()
-        
+    def burn_pot(self) -> None:
+        # move all to burn vacant
+        move_cards_and_relink(self.pot.get_all_cards(), self.burn_vacant)
+        self.pot.clear()
         self.end_turn()
 
+    def pick_up_pot(self) -> None:
+        defender = self.get_defender()
+        for card in self.pot.get_all_cards():
+            defender.hand_cards.append(card)
+        self.pot.clear()
+        self.end_turn_skip ()
+
     def step(self) -> None:
-        for player in self.players:
-            player.step()
         if self.event:
             self.event['time'] -= 1
             if self.event['time'] > 0:

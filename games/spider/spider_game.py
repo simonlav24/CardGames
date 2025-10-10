@@ -7,11 +7,11 @@ from engine.game_base import GameBase
 from utils.custom_random import shuffle
 from core.card import Card, Vacant, Rank, Suit, create_single_suit_deck, CARD_SIZE
 from engine.rules import RuleSet
-from engine.events import post_event, Event, EventType, DelayedSetPosEvent, MoveToTopEvent, SequenceCompleteEvent
+from engine.events import post_event, Event, EventType, DelayedSetPosEvent, MoveToTopEvent, SequenceCompleteEvent, DroppedCardEvent
 
 
 class SpiderRuleSet(RuleSet):
-    def can_link_cards(self, upper: Card, lower: Card) -> bool:
+    def can_drop_card(self, upper: Card, lower: Card) -> bool:
         # only rank matters in spider
         if upper.rank == Rank.NONE:
             # vacant can link anything
@@ -22,13 +22,15 @@ class SpiderRuleSet(RuleSet):
         
         return False
 
-    def on_place_card(self, card: Card, previous_parent: Card | None):
+    def on_place_card(self, placed_Card: Card, placed_upon_card: Card, previous_parent: Card | None, legal_drop: bool) -> None:
+        if not legal_drop:
+            return
         if not previous_parent.is_face_up():
             previous_parent.flip()
 
         # check for completed sequence
         king = None
-        for parent in card.iterate_up():
+        for parent in placed_Card.iterate_up():
             if parent.rank == Rank.KING and parent.is_face_up():
                 king = parent
                 break
@@ -59,6 +61,12 @@ class SpiderRuleSet(RuleSet):
             expected_rank -= 1
         
         return True
+    
+    def handle_event(self, event: Event):
+        super().handle_event(event)
+        if event.type == EventType.DROPPED_CARD:
+            event: DroppedCardEvent = event
+            self.on_place_card(event.placed_card, event.placed_upon, event.last_parent, event.legal_drop)
 
 
 class SpiderGame(GameBase):
@@ -73,6 +81,7 @@ class SpiderGame(GameBase):
 
     def handle_event(self, event: Event) -> None:
         super().handle_event(event)
+        self.rules.handle_event(event)
         if event.type == EventType.SEQUENCE_COMPLETE:
             king = event.main_card
             self.complete_sequence(king)
