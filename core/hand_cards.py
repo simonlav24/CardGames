@@ -4,8 +4,11 @@ import time
 
 from utils.utils import Vector2 
 
-from core.card import Card, CARD_SIZE, rank_translate_aces_high
+from core.card import Card, CARD_SIZE, sort_aces_high
 from core.card_container import CardContainer
+
+def card_sort_aces_high(card: Card) -> int:
+    return sort_aces_high(card.rank)
 
 class HandCards(CardContainer):
     ''' cards held in hand '''
@@ -14,7 +17,7 @@ class HandCards(CardContainer):
         # center pos
         self.pos = Vector2()
         self.margin = - CARD_SIZE[0] // 2
-        self.rank_tranlsate = rank_translate_aces_high
+        self.sort_func = card_sort_aces_high
         self.selected_cards: list[Card] = []
         self.is_turn: bool = False
         self.time = 0
@@ -26,7 +29,7 @@ class HandCards(CardContainer):
     def append(self, card: Card) -> None:
         super().append(card)
         # sort by rank
-        self.cards.sort(key=lambda c: self.rank_tranlsate(c.rank))
+        self.cards.sort(key=lambda c: self.sort_func(c))
         self._recalculate_depth()
         self._recalculate_pos()
     

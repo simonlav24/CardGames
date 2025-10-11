@@ -4,7 +4,7 @@
 from enum import Enum
 
 from utils import Vector2
-from core import Card, Vacant, Rank, rank_translate_aces_high, Suit, move_cards_and_relink
+from core import Card, Vacant, Rank, sort_aces_high, Suit, move_cards_and_relink
 from engine import post_event, DelayedSetPosEvent, RuleSet
 
 from games.durak.player import PlayerBase
@@ -143,7 +143,7 @@ class GameRoutine(RuleSet):
 
     def is_legal_defence(self, attack_card: Card, defence_card: Card) -> bool:
         if (attack_card.suit == defence_card.suit and
-            rank_translate_aces_high(attack_card.rank) < rank_translate_aces_high(defence_card.rank)):
+            sort_aces_high(attack_card.rank) < sort_aces_high(defence_card.rank)):
             return True
         elif (attack_card.suit != defence_card.suit and
             defence_card.suit == self.kozer):

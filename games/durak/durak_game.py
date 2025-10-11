@@ -5,7 +5,7 @@
 from utils import Vector2, shuffle
 from game_globals import win_width, win_height, KEY_D
 
-from core import Card, Vacant, create_deck, CARD_SIZE, Suit, rank_translate_aces_high, Rank
+from core import Card, Vacant, create_deck, CARD_SIZE, Suit, sort_aces_high, Rank
 from engine import EventType, GameBase, DroppedCardEvent
  
 from games.durak.player import PlayerBase, Player
@@ -51,7 +51,7 @@ class DurakGame(GameBase):
         deck = create_deck()
         cards: list[Card] = []
         for card in deck:
-            if rank_translate_aces_high(card.rank) < rank_translate_aces_high(Rank.SIX):
+            if sort_aces_high(card.rank) < sort_aces_high(Rank.SIX):
                 continue
             cards.append(card)
         

@@ -1,7 +1,7 @@
 
 from enum import Enum
 
-from core import Card, Vacant, Suit, rank_translate_aces_high, HandCards
+from core import Card, Vacant, Suit, sort_aces_high, HandCards
 from games.durak.durak_pot import DurakPot
 
 class PlayerMode(Enum):
@@ -15,7 +15,7 @@ class DurakSort:
         self.kozer = kozer
 
     def tranlsate(self, card: Card) -> int:
-        base_value = rank_translate_aces_high(card.rank)
+        base_value = sort_aces_high(card.rank)
         if card.suit == self.kozer:
             base_value += 15
         return base_value
@@ -25,7 +25,7 @@ class PlayerBase:
     def __init__(self):
         self.hand_cards = HandCards()
         self.sorter: DurakSort = None
-        self.hand_cards.sorting_func = None
+        self.hand_cards.sort_func = None
         self.hand_cards.multi_select = False
         self.pot: DurakPot = None
         self.mode = PlayerMode.NONE
@@ -35,7 +35,7 @@ class PlayerBase:
         self.pot = pot
         self.kozer = kozer
         self.sorter = DurakSort(kozer)
-        self.hand_cards.sorting_func = self.sorter.tranlsate
+        self.hand_cards.sort_func = self.sorter.tranlsate
         
     def get_hand(self) -> HandCards:
         return self.hand_cards

@@ -2,7 +2,7 @@
 
 
 
-from core import Card, Vacant, Rank, rank_translate_aces_high, Pile
+from core import Card, Vacant, Rank, sort_aces_high, Pile
 from engine import post_event, DelayedSetPosEvent
 
 from games.shithead.player import PlayerBase, GameStage
@@ -57,12 +57,12 @@ class GameRoutine:
                 return True
             
             case Rank.SEVEN:
-                if rank_translate_aces_high(card.rank) <= rank_translate_aces_high(Rank.SEVEN):
+                if sort_aces_high(card.rank) <= sort_aces_high(Rank.SEVEN):
                     return True
                 else:
                     return False
 
-        if rank_translate_aces_high(card.rank) >= rank_translate_aces_high(effective_rank):
+        if sort_aces_high(card.rank) >= sort_aces_high(effective_rank):
             return True
         return False
             
