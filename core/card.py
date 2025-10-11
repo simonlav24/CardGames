@@ -65,10 +65,10 @@ rank_text = {
 }
 
 
-def rank_translate_ace_low(rank: Rank) -> int:
+def rank_translate_aces_low(rank: Rank) -> int:
     return rank.value
 
-def rank_translate_ace_high(rank: Rank) -> int:
+def rank_translate_aces_high(rank: Rank) -> int:
     if rank == Rank.ACE:
         return 14
     return rank.value

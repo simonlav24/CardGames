@@ -4,7 +4,7 @@ import time
 
 from utils.utils import Vector2 
 
-from core.card import Card, CARD_SIZE, rank_translate_ace_high
+from core.card import Card, CARD_SIZE, rank_translate_aces_high
 from core.card_container import CardContainer
 
 class HandCards(CardContainer):
@@ -14,7 +14,7 @@ class HandCards(CardContainer):
         # center pos
         self.pos = Vector2()
         self.margin = - CARD_SIZE[0] // 2
-        self.rank_tranlsate = rank_translate_ace_high
+        self.rank_tranlsate = rank_translate_aces_high
         self.selected_cards: list[Card] = []
         self.is_turn: bool = False
         self.time = 0

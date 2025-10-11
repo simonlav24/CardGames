@@ -1,8 +1,7 @@
 
 from enum import Enum
 
-from core import Card, Vacant, Suit, rank_translate_aces_high
-from engine import HandCards
+from core import Card, Vacant, Suit, rank_translate_aces_high, HandCards
 from games.durak.durak_pot import DurakPot
 
 class PlayerMode(Enum):
