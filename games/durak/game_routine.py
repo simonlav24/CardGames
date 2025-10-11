@@ -4,8 +4,8 @@
 from enum import Enum
 
 from utils import Vector2
-from core import Card, Vacant, Rank, sort_aces_high, Suit, move_cards_and_relink
-from engine import post_event, DelayedSetPosEvent, RuleSet
+from core import Card, Vacant, sort_aces_high, Suit, move_cards_and_relink
+from engine import RuleSet
 
 from games.durak.player import PlayerBase
 from games.durak.durak_pot import DurakPot
@@ -140,6 +140,16 @@ class GameRoutine(RuleSet):
                 # any attacker
                 attacker = self.get_player_by_card(card)
                 self.place_attack_card_on_battle(card, attacker)
+        
+
+    def double_click_on_card(self, card: Card) -> None:
+        if card.get_top_link() is self.burn_vacant:
+            # see if burn is legal
+            if self.pot.can_burn():
+                self.burn_pot()
+
+        if card in self.pot:
+            self.pick_up_pot()
 
     def is_legal_defence(self, attack_card: Card, defence_card: Card) -> bool:
         if (attack_card.suit == defence_card.suit and

@@ -65,6 +65,14 @@ class DurakPot:
         for card in self.get_all_cards():
             rank_set.add(card.rank)
         return rank_set
+    
+    def can_burn(self) -> bool:
+        if len(self.places) == 0:
+            return False
+        for place in self.places:
+            if place[0] is not None and place[1] is None:
+                return False
+        return True
 
 
 

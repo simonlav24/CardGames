@@ -55,7 +55,7 @@ class CardManipulator:
 
         if not self.rules.can_drag_card(self.selected_card):
             return
-        self.last_pos = self.selected_card.pos.copy()
+        self.last_pos = self.selected_card.get_pos().copy()
         self.dragged_card = self.selected_card
         self.drag_offset = Vector2(pos) - self.dragged_card.pos
 
@@ -65,7 +65,6 @@ class CardManipulator:
 
     def on_double_click(self, pos: Vector2):
         if (self.selected_card is None or
-            self.selected_card.rank == Rank.NONE or
             not self.selected_card.is_face_up()):
             return
         post_event(DoubleClickedCard(card=self.selected_card))

@@ -37,7 +37,7 @@ class DurakGame(GameBase):
             self.game_routine.clicked_on_card(event.card)
 
         if event.type == EventType.DOUBLE_CLICK_CARD:
-            self.game_routine.pick_up_pot()
+            self.game_routine.double_click_on_card(event.card)
 
         if event.type == EventType.DROPPED_CARD:
             event: DroppedCardEvent = event
