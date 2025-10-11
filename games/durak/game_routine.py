@@ -4,7 +4,7 @@
 from enum import Enum
 
 from utils import Vector2
-from core import Card, Vacant, Rank, rank_translate_ace_high, Suit, move_cards_and_relink
+from core import Card, Vacant, Rank, rank_translate_aces_high, Suit, move_cards_and_relink
 from engine import post_event, DelayedSetPosEvent, RuleSet
 
 from games.durak.player import PlayerBase
@@ -26,7 +26,6 @@ class GameRoutine(RuleSet):
         self.deck: list[Card] = None
         self.pot: DurakPot = None
         self.burn_vacant: Vacant = None
-        self.rank_translate = rank_translate_ace_high
         self.kozer: Suit
         self.game_mode = GameStage.FIRST_ATTACK
 
@@ -58,10 +57,28 @@ class GameRoutine(RuleSet):
     def start(self) -> None:
         self.players[self.current_attacker_index].attack()
         self.game_mode = GameStage.FIRST_ATTACK
+        self.get_main_attacker().toggle_turn()
 
     def end_turn(self) -> None:
+        # pick up card
+        player_list = self.players[self.current_attacker_index:] + self.players[:self.current_attacker_index]
+        player_list.remove(self.get_defender())
+        player_list.append(self.get_defender())
+        for player in player_list:
+            card_needed = max(0, 6 - len(player.hand_cards))
+
+            while len(self.deck) > 0 and card_needed > 0:
+                card = self.deck.pop()
+                if not card.is_face_up():
+                    card.flip()
+                player.hand_cards.append(card)
+                card_needed -= 1
+                if card_needed == 0:
+                    break
+
         self.current_attacker_index = (self.current_attacker_index + 1) % len(self.players)
         self.game_mode = GameStage.FIRST_ATTACK
+        self.get_main_attacker().toggle_turn()
 
     def end_turn_skip(self) -> None:
         self.current_attacker_index = (self.current_attacker_index + 1) % len(self.players)
@@ -113,6 +130,7 @@ class GameRoutine(RuleSet):
                 return
             self.place_attack_card_on_battle(card, self.get_main_attacker())
             self.game_mode = GameStage.FREE_PLAY
+            self.get_main_attacker().toggle_turn()
         
         elif self.game_mode == GameStage.FREE_PLAY:
             current_player = self.get_player_by_card(card)
@@ -125,7 +143,7 @@ class GameRoutine(RuleSet):
 
     def is_legal_defence(self, attack_card: Card, defence_card: Card) -> bool:
         if (attack_card.suit == defence_card.suit and
-            self.rank_translate(attack_card.rank) < self.rank_translate(defence_card.rank)):
+            rank_translate_aces_high(attack_card.rank) < rank_translate_aces_high(defence_card.rank)):
             return True
         elif (attack_card.suit != defence_card.suit and
             defence_card.suit == self.kozer):
@@ -140,7 +158,7 @@ class GameRoutine(RuleSet):
 
     def pick_up_pot(self) -> None:
         defender = self.get_defender()
-        for card in self.pot.get_all_cards():
+        for card in self.pot.get_all_cards(): 
             defender.hand_cards.append(card)
         self.pot.clear()
         self.end_turn_skip ()

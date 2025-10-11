@@ -1,7 +1,7 @@
 
 
 from utils import randint
-from core import Card, Vacant, Rank, rank_translate_ace_high, HandCards
+from core import Card, Rank, rank_translate_aces_high
 from engine import post_event, ClickedCard, DoubleClickedCard
 from games.shithead.player import PlayerBase, GameStage
 
@@ -73,13 +73,13 @@ class AiPlayer(PlayerBase):
                 return True
             else:
                 return False
-        if rank_translate_ace_high(rank) >= rank_translate_ace_high(pile_rank):
+        if rank_translate_aces_high(rank) >= rank_translate_aces_high(pile_rank):
             return True
         return False
 
     def get_lowest_non_special(self, pile_rank: Rank) -> Card:
         cards = self.get_playable_cards()
-        cards.sort(key=lambda x: rank_translate_ace_high(x.rank))
+        cards.sort(key=lambda x: rank_translate_aces_high(x.rank))
         cards = [card for card in cards if (
             card.rank not in special_ranks and
             self.is_legal_move(card.rank, pile_rank)
@@ -90,7 +90,7 @@ class AiPlayer(PlayerBase):
     
     def get_special(self) -> Card:
         cards = self.get_playable_cards()
-        cards.sort(key=lambda x: rank_translate_ace_high(x.rank))
+        cards.sort(key=lambda x: rank_translate_aces_high(x.rank))
         cards = [card for card in cards if (
             card.rank in special_ranks
               )]

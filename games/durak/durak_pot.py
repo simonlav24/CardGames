@@ -47,6 +47,10 @@ class DurakPot:
         return False
 
     def clear(self) -> None:
+        for place in self.places:
+            if place[0] is not None and place[1] is not None:
+                place[0].break_lower_link()
+                place[1].break_upper_link()
         self.places.clear()
         self.current_place_pos = self.pos.copy()
 
