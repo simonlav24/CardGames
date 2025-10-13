@@ -8,7 +8,7 @@ from game_globals import win_width, win_height, KEY_D
 from core import Card, Vacant, create_deck, CARD_SIZE, Suit, sort_aces_high, Rank
 from engine import EventType, GameBase, DroppedCardEvent
  
-from games.durak.player import PlayerBase, Player
+from games.durak.player import Player
 # from games.durak.ai_player import AiPlayer
 from games.durak.game_routine import GameRoutine
 from games.durak.durak_pot import DurakPot

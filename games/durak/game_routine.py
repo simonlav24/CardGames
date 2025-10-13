@@ -79,15 +79,15 @@ class GameRoutine(RuleSet):
         self.current_attacker_index = (self.current_attacker_index + 1) % len(self.players)
         self.game_mode = GameStage.FIRST_ATTACK
         self.get_main_attacker().toggle_turn()
+        self.reset_turn()
 
     def end_turn_skip(self) -> None:
         self.current_attacker_index = (self.current_attacker_index + 1) % len(self.players)
         self.end_turn()
         
     def reset_turn(self) -> None:
-        ...
-        # current_player = self.players[self.current_player_index]
-        # self.event = {'time': 60, 'function': current_player.start_turn}         
+        current_player = self.get_main_attacker()
+        self.event = {'time': 60, 'function': current_player.start_turn}         
 
     def card_belongs_to(self, card: Card, player: PlayerBase) -> bool:
         if card in player.hand_cards:
@@ -150,6 +150,18 @@ class GameRoutine(RuleSet):
 
         if card in self.pot:
             self.pick_up_pot()
+        
+        if self.game_mode == GameStage.FREE_PLAY and self.card_belongs_to(card, self.get_defender()):
+            # auto-defend if its obvious
+            single_suit_card = self.pot.get_card_of_suit(card.suit)
+            if single_suit_card is not None and self.is_legal_defence(single_suit_card, card):
+                self.place_defend_card_on_battle(single_suit_card, card)
+                return
+            single_card = self.pot.get_if_one()
+            if single_card is not None and self.is_legal_defence(single_card, card):
+                self.place_defend_card_on_battle(single_card, card)
+                return
+
 
     def is_legal_defence(self, attack_card: Card, defence_card: Card) -> bool:
         if (attack_card.suit == defence_card.suit and
@@ -161,16 +173,18 @@ class GameRoutine(RuleSet):
         return False
 
     def burn_pot(self) -> None:
-        # move all to burn vacant
-        move_cards_and_relink(self.pot.get_all_cards(), self.burn_vacant)
-        self.pot.clear()
+        '''move all to burn vacant'''
+        self.pot.clear_links()
+        move_cards_and_relink(self.pot.get_all_cards(), self.burn_vacant.get_bottom_link())
+        self.pot.clear_cards()
         self.end_turn()
 
     def pick_up_pot(self) -> None:
         defender = self.get_defender()
         for card in self.pot.get_all_cards(): 
             defender.hand_cards.append(card)
-        self.pot.clear()
+        self.pot.clear_links()
+        self.pot.clear_cards()
         self.end_turn_skip ()
 
     def step(self) -> None:
@@ -179,9 +193,6 @@ class GameRoutine(RuleSet):
             if self.event['time'] > 0:
                 return
 
-            is_done = self.event['function']()
-            if is_done:
-                self.event = None
-            else:
-                self.reset_turn()
+            self.event['function']()
+
 

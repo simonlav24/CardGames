@@ -1,6 +1,8 @@
 
 
-from core import Card, CARD_SIZE, Rank
+from typing import Callable
+
+from core import Card, CARD_SIZE, Rank, Suit
 from utils import Vector2
 from engine import post_event, MoveToBottomEvent
 
@@ -46,11 +48,15 @@ class DurakPot:
                 return True
         return False
 
-    def clear(self) -> None:
+    def clear_links(self) -> None:
+        '''clear any natural links in the pot'''
         for place in self.places:
             if place[0] is not None and place[1] is not None:
                 place[0].break_lower_link()
                 place[1].break_upper_link()
+
+    def clear_cards(self) -> None:
+        '''clear all cards'''
         self.places.clear()
         self.current_place_pos = self.pos.copy()
 
@@ -73,6 +79,28 @@ class DurakPot:
             if place[0] is not None and place[1] is None:
                 return False
         return True
+    
+    def get_card_of_suit(self, suit: Suit) -> Card:
+        return self._look_for_card_satisfying(lambda x: x.suit == suit)
+
+    def get_if_one(self) -> Card:
+        '''return attack card if its the only one left'''
+        return self._look_for_card_satisfying(lambda _: True)
+    
+    def _look_for_card_satisfying(self, condition: Callable[[Card], bool]) -> Card:
+        '''look for single card that satisfies condition'''
+        count = 0
+        candidate = None
+        for place in self.places:
+            attack_card = place[0]
+            if (attack_card is not None and place[1] is None and
+                condition(attack_card)):
+                count += 1
+                if count > 1:
+                    return None
+                candidate = attack_card
+        return candidate
+
 
 
 

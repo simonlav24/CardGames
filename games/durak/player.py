@@ -55,5 +55,8 @@ class PlayerBase:
     def toggle_turn(self) -> None:
         self.hand_cards.toggle_turn()
 
+    def start_turn(self) -> None:
+        ...
+
 class Player(PlayerBase):
     ...
