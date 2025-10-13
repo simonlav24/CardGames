@@ -85,6 +85,10 @@ class SpiderGame(GameBase):
         if event.type == EventType.SEQUENCE_COMPLETE:
             king = event.main_card
             self.complete_sequence(king)
+        
+        if event.type == EventType.DOUBLE_CLICK_CARD:
+            if event.card in self.deck:
+                self.deal_from_deck()
 
     def on_key_press(self, key):
         if key == game_globals.KEY_D:

@@ -42,7 +42,7 @@ class CardManipulator:
             self.drag_card(self.dragged_card, Vector2(pos) - self.drag_offset)
         
         self.selected_card = None
-        closest_card = self.find_card_at_pos(pos)
+        closest_card = self.find_card_at_pos(Vector2(pos))
         
         if closest_card is not None:
             self.selected_card = closest_card
@@ -64,8 +64,7 @@ class CardManipulator:
         
 
     def on_double_click(self, pos: Vector2):
-        if (self.selected_card is None or
-            not self.selected_card.is_face_up()):
+        if self.selected_card is None:
             return
         post_event(DoubleClickedCard(card=self.selected_card))
 
@@ -85,7 +84,7 @@ class CardManipulator:
 
         legal_drop = False
 
-        potential_parent = self.find_card_at_pos(pos, exclude=card_to_link)
+        potential_parent = self.find_card_near_pos(Vector2(pos), exclude=card_to_link)
         previous_link = card_to_link.get_prev()
 
         if potential_parent is not None:
@@ -97,7 +96,12 @@ class CardManipulator:
                     legal_drop = False
 
         if legal_drop:
-            self.animate_sequence_to_pos(card_to_link, potential_parent.pos + potential_parent.link_offset)
+            # self.animate_sequence_to_pos(card_to_link, potential_parent.pos + potential_parent.link_offset)
+            prev_card = potential_parent
+            for card in card_to_link.iterate_down():
+                card.set_abs_pos(prev_card.pos + prev_card.link_offset)
+                prev_card = card
+            
 
         if not legal_drop and self.rules.on_drop_return_to_previous_pos:
             self.animate_sequence_to_pos(card_to_link, self.last_pos)
@@ -112,6 +116,22 @@ class CardManipulator:
             end_pos = end_pos + card.link_offset
 
         
+    def find_card_near_pos(self, pos: Vector2, exclude: Card=None) -> Card | None:
+        closest_card: Card = None
+        closest_dist: float = float('inf')
+        for card in reversed(self.cards):
+            if card is exclude:
+                continue
+            if card.linked_down is not None:
+                continue
+            card_rect = Rect(*(card.pos - CARD_SIZE * 0.5), *(CARD_SIZE * 2))
+            if card_rect.collidepoint(pos):
+                dist = pos.distance_squared_to(card.pos + CARD_SIZE * 0.5)
+                if dist < closest_dist:
+                    closest_card = card
+                    closest_dist = dist
+        return closest_card
+
     def find_card_at_pos(self, pos: Vector2, exclude: Card=None) -> Card | None:
         for card in reversed(self.cards):
             if card is exclude:
@@ -120,7 +140,6 @@ class CardManipulator:
             if card_rect.collidepoint(pos):
                 return card
         return None
-
 
     def link_cards(self, upper: Card, lower: Card) -> bool:
 

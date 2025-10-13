@@ -112,6 +112,12 @@ class KlondikeGame(GameBase):
         if event.type == EventType.DOUBLE_CLICK_CARD:
             self.double_click_on_card(event.card)
 
+        if event.type == EventType.CLICK_CARD:
+            card: Card = event.card
+            if card in self.deck and not card.is_face_up():
+                self.deal_from_deck()
+
+
         
     def setup_game(self) -> list[Card]:
         cards = create_deck()

@@ -33,6 +33,7 @@ class GameRoutine:
     def end_turn(self) -> None:
         if self.players[self.current_player_index].get_game_stage() == GameStage.END:
             print(f'Player {self.current_player_index + 1} Won!')
+            self.players.remove(self.players[self.current_player_index])
             return
 
         self.players[self.current_player_index].toggle_turn()

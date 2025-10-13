@@ -5,7 +5,7 @@
 from utils import Vector2, shuffle
 from game_globals import win_width, win_height
 
-from core import Card, Vacant, create_deck, CARD_SIZE, Pile
+from core import Card, Vacant, create_deck, CARD_SIZE, Pile, Rank
 from engine import RuleSet, EventType, GameBase
  
 from games.shithead.player import Player
@@ -51,8 +51,9 @@ class ShitheadGame(GameBase):
 
     def setup_game(self) -> list[Card]:
         cards = create_deck()
+
         shuffle(cards)
-        self.deck += cards.copy()
+        self.deck += cards.copy() 
 
         vacants: list[Vacant] = []
         margin = 10
