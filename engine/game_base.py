@@ -14,7 +14,6 @@ class GameBase:
         self.elements: list[DelayedPosCard] = []
         self.card_manipulator: CardManipulator = CardManipulator()
 
-
     def handle_event(self, event: Event) -> None:
         match event.type:
             case EventType.DELAYED_SET_POS:
@@ -36,6 +35,9 @@ class GameBase:
         self.elements = [e for e in self.elements if not e.is_done()]
         for card in self.cards:
             card.step()
+
+    def get_selected_card(self) -> Card | None:
+        return self.card_manipulator.selected_card
 
     def on_mouse_move(self, pos: Vector2) -> None:
         self.card_manipulator.on_mouse_move(pos)

@@ -31,7 +31,7 @@ def main():
     DOUBLE_CLICK_INTERVAL = 400
     DOUBLE_CLICK_OFFSET_SQUARED = 25
  
-    game = SpiderGame()
+    game = ShitheadGame()
     cards = game.setup_game()
 
     # Main loop
