@@ -50,7 +50,7 @@ class SpiderRuleSet(RuleSet):
 
     def can_drag_card(self, card: Card) -> bool:
         # can only drag face up cards
-        if not card.is_face_up():
+        if not card.is_face_up() or card.rank == Rank.NONE:
             return False
         
         # can only drag if all linked cards below are in sequence

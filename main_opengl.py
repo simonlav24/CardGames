@@ -5,7 +5,7 @@ from pygame.locals import *
 from OpenGL.GL import *
 from OpenGL.GLU import *
 
-from core import Card, CARD_SIZE
+from core import Card, CARD_SIZE, Rank
 
 from utils import Vector2
 import utils.custom_random as custom_random
@@ -41,12 +41,10 @@ class Texture:
                     GL_RGBA, GL_UNSIGNED_BYTE, image_data)
 
 
-# === Constants ===
 WINDOW_SIZE = (1280, 720)
 WINDOW_WIDTH, WINDOW_HEIGHT = WINDOW_SIZE
 FPS = 60
 
-# === Initialize Pygame + OpenGL ===
 def init():
     ortho = True
 
@@ -69,7 +67,7 @@ def init():
 
     if not ortho:
         gluLookAt(0, 0, 0, 0, 0, -1, 0, 1, 0)  # camera at origin looking toward -Z
-        glTranslatef(-WINDOW_WIDTH / 2, WINDOW_HEIGHT / 2, -1000)  # push the "screen" backward
+        glTranslatef(-WINDOW_WIDTH / 2, WINDOW_HEIGHT / 2, -1000)  # push backward
         glScalef(1, -1, 1)  # make y go downwards (like Pygame)
         glEnable(GL_DEPTH_TEST)
 
@@ -84,6 +82,8 @@ def init():
 card_assets_texture: Texture = None
 
 def draw_card(card: Card):
+    glEnable(GL_TEXTURE_2D)
+    glColor4f(1.0, 1.0, 1.0, 1.0)
     glBindTexture(GL_TEXTURE_2D, card_assets_texture.id)
     glPushMatrix()
 
@@ -94,14 +94,25 @@ def draw_card(card: Card):
         mouse = Vector2(pygame.mouse.get_pos())
         center = card.pos + CARD_SIZE / 2
         mouse_to_pos = center - mouse
-        axis_of_rotation = Vector2(mouse_to_pos[1], -mouse_to_pos[0])
+        axis_of_rotation = Vector2(-mouse_to_pos[1], mouse_to_pos[0])
         dist = mouse.distance_to(center)
 
         glTranslatef(x + w/2, y + h/2, 0)
-        angle = min(dist, 20)
+        angle = min(dist, 25)
         glRotatef(angle, axis_of_rotation.x, axis_of_rotation.y, 0)
         glTranslatef(-x - w/2, -y - h/2, 0)
 
+    if card.rank == Rank.NONE:
+        glDisable(GL_TEXTURE_2D)
+        glColor3f(1.0, 0.3, 0.3)
+        glBegin(GL_LINE_LOOP)
+        glVertex3f(x,     y, 0)
+        glVertex3f(x + w, y, 0)
+        glVertex3f(x + w, y + h, 0)
+        glVertex3f(x,     y + h, 0)
+        glEnd()
+        glPopMatrix()
+        return
 
     glBegin(GL_QUADS)
     
@@ -113,8 +124,6 @@ def draw_card(card: Card):
     sy = card_rect.topleft[1] / card_assets_texture.height
     tx = card_rect.bottomright[0] / card_assets_texture.width
     ty = card_rect.bottomright[1] / card_assets_texture.height
-
-    
 
     size_adding = card.animation.size_factor * 5.0
     y -= size_adding / 2
@@ -149,7 +158,7 @@ class CardAnim:
         force = - 1 * (self.size_factor - self.target_size_factor)
         self.size_factor_acc = force
         self.size_factor_vel += self.size_factor_acc * dt
-        self.size_factor_vel *= 0.7
+        self.size_factor_vel *= 0.65
         self.size_factor += self.size_factor_vel * dt
 
     def reset(self) -> None:
@@ -170,12 +179,12 @@ DOUBLE_CLICK_INTERVAL = 400
 DOUBLE_CLICK_OFFSET_SQUARED = 25
 
 
-# === Main Loop ===
+
 def main():
     global card_assets_texture
     init()
     
-    game = KlondikeGame()
+    game = SpiderGame()
     cards = game.setup_game()
     cards_animation: list[CardAnim] = []
     for card in cards:
@@ -244,6 +253,6 @@ def main():
 
     pygame.quit()
 
-# === Entry Point ===
+
 if __name__ == "__main__":
     main()
