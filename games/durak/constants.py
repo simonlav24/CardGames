@@ -1,0 +1,4 @@
+
+
+
+KOZER_BONUS = 15

@@ -1,10 +1,15 @@
+
+
 from random import randint, uniform
+import json
+import os
 
 import pygame
 from pygame.locals import *
 from OpenGL.GL import *
 from OpenGL.GLU import *
 
+import core
 from core import Card, CARD_SIZE, Rank
 
 from utils import Vector2
@@ -17,11 +22,13 @@ from games.shithead.shithead_game import ShitheadGame
 from games.durak.durak_game import DurakGame
 
 class Texture:
-    def __init__(self, path: str):
+    def __init__(self, path: str, cover_index: int):
         self.width = 0
         self.height = 0
         self.id = 0
         self._load(path)
+
+        self.back_rect = pygame.Rect((cover_index % 13) * CARD_SIZE[0], (cover_index // 13) * CARD_SIZE[1], *CARD_SIZE)
     
     def _load(self, path: str) -> None:
         surface = pygame.image.load(path)
@@ -41,11 +48,20 @@ class Texture:
                     GL_RGBA, GL_UNSIGNED_BYTE, image_data)
 
 
+    def get_card_area(self, card: Card) -> pygame.Rect:
+        if card is None:
+            return self.back_rect  # Back of card
+        x = (card.rank.value - 1) * CARD_SIZE[0]
+        y = (card.suit.value - 1) * CARD_SIZE[1]
+        return pygame.Rect(x, y, CARD_SIZE[0], CARD_SIZE[1])
+
+
+
 WINDOW_SIZE = (1280, 720)
 WINDOW_WIDTH, WINDOW_HEIGHT = WINDOW_SIZE
 FPS = 60
 
-def init():
+def init_graphics():
     ortho = True
 
     pygame.init()
@@ -90,7 +106,9 @@ def draw_card(card: Card):
     x, y = card.pos
     w, h = CARD_SIZE
 
-    if card.animation.is_selected:
+    anim: CardAnim = card.animation
+
+    if anim.is_selected:
         mouse = Vector2(pygame.mouse.get_pos())
         center = card.pos + CARD_SIZE / 2
         mouse_to_pos = center - mouse
@@ -100,6 +118,12 @@ def draw_card(card: Card):
         glTranslatef(x + w/2, y + h/2, 0)
         angle = min(dist, 25)
         glRotatef(angle, axis_of_rotation.x, axis_of_rotation.y, 0)
+        glTranslatef(-x - w/2, -y - h/2, 0)
+
+    if anim.card_vel.magnitude_squared() > 2.0:
+        angle = anim.card_vel.x
+        glTranslatef(x + w/2, y + h/2, 0)
+        glRotatef(angle, 0, 0, 1)
         glTranslatef(-x - w/2, -y - h/2, 0)
 
     if card.rank == Rank.NONE:
@@ -116,9 +140,9 @@ def draw_card(card: Card):
 
     glBegin(GL_QUADS)
     
-    card_rect = get_card_sprite_rect(card)
-    if not card.is_face_up():
-        card_rect = get_card_sprite_rect(None)
+    card_rect = card_assets_texture.get_card_area(card)
+    if not card.is_face_up() or card.is_hidden:
+        card_rect = card_assets_texture.get_card_area(None)
     
     sx = card_rect.topleft[0] / card_assets_texture.width
     sy = card_rect.topleft[1] / card_assets_texture.height
@@ -152,6 +176,8 @@ class CardAnim:
         self.card = card
 
         self.target_size_factor = 0.0
+        self.last_pos = Vector2()
+        self.card_vel = Vector2()
 
     def step(self) -> None:
         dt = 0.7
@@ -161,30 +187,38 @@ class CardAnim:
         self.size_factor_vel *= 0.65
         self.size_factor += self.size_factor_vel * dt
 
+
+        self.card_vel = self.card.pos - self.last_pos
+        self.last_pos = self.card.pos.copy()
+        # print(self.card_vel)
+
     def reset(self) -> None:
         self.target_size_factor = 0.0
         self.is_selected = False
-        
 
-
-
-def get_card_sprite_rect(card: Card | None) -> pygame.Rect:
-    if card is None:
-        return back_rect  # Back of card
-    x = (card.rank.value - 1) * CARD_SIZE[0]
-    y = (card.suit.value - 1) * CARD_SIZE[1]
-    return pygame.Rect(x, y, CARD_SIZE[0], CARD_SIZE[1])
 
 DOUBLE_CLICK_INTERVAL = 400
 DOUBLE_CLICK_OFFSET_SQUARED = 25
 
 
-
 def main():
     global card_assets_texture
-    init()
+
+    texture_paths = [(r"assets/balatro_deck.png", r"assets/balatro_deck.json"), (r"assets/card_sprite.png", r"assets/card_sprite.json")]
+    for tex_path in texture_paths:
+        card_texture_path, card_texture_info_path = tex_path
+        if os.path.exists(card_texture_path):
+            break
+
+    with open(card_texture_info_path, 'r') as file:
+        tex_info = json.loads(file.read())
+
+    cover_index = 13 * 4 + randint(1, tex_info['covers'])
+
+    core.initialize(tex_info['card_size'])
+    init_graphics()
     
-    game = SpiderGame()
+    game = DurakGame()
     cards = game.setup_game()
     cards_animation: list[CardAnim] = []
     for card in cards:
@@ -194,7 +228,7 @@ def main():
 
     clock = pygame.time.Clock()
 
-    card_assets_texture = Texture("assets/card_sprite.png")
+    card_assets_texture = Texture(card_texture_path, cover_index)
 
     last_click_time = 0
     last_click_pos = (0,0)

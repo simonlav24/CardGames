@@ -8,6 +8,7 @@ from utils.utils import Vector2
 from core.animation import DelayedPosCard
 from core.card import Card
 
+TEST_MODE = False
 
 class EventType(Enum):
     NONE = 0
@@ -74,5 +75,7 @@ class DroppedCardEvent(Event):
     type: EventType = EventType.DROPPED_CARD
 
 def post_event(event: Event):
+    if(TEST_MODE):
+        return
     custom_event = pygame.event.Event(pygame.USEREVENT, {"event": event})
     pygame.event.post(custom_event)

@@ -7,7 +7,7 @@ import game_globals
 
 DEBUG = False
 
-CARD_SIZE = Vector2(71, 96)
+CARD_SIZE = Vector2(0, 0)
 DEFAULT_LINK_OFFSET = Vector2(0, 17)
 
 class Rank(Enum):
@@ -64,6 +64,10 @@ rank_text = {
     Rank.KING: "King"
 }
 
+def initialize(card_size: tuple[int, int]) -> None:
+    global CARD_SIZE
+    CARD_SIZE.x = card_size[0]
+    CARD_SIZE.y = card_size[1]
 
 def sort_aces_low(rank: Rank) -> int:
     return rank.value
