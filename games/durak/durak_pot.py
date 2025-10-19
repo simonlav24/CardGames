@@ -35,6 +35,7 @@ class DurakPot:
         post_event(MoveToBottomEvent(attack_card))
     
     def get_all_cards(self) -> list[Card]:
+        '''get all cards in the pot'''
         cards: list[Card] = []
         for place in self.places:
             for i in range(2):

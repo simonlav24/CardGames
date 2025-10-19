@@ -1,9 +1,13 @@
 
 import sys
+import os
+import json
+from random import randint
 
 import pygame
 from pygame.math import Vector2
 
+import core
 import utils.custom_random as custom_random
 import game_globals
 from utils.card_draw import draw_card
@@ -18,6 +22,19 @@ def main():
     # Initialize Pygame
     pygame.init()
 
+    texture_paths = [(r"assets/balatro_deck.png", r"assets/balatro_deck.json"), (r"assets/card_sprite.png", r"assets/card_sprite.json")]
+    for tex_path in texture_paths:
+        card_texture_path, card_texture_info_path = tex_path
+        if os.path.exists(card_texture_path):
+            break
+
+    with open(card_texture_info_path, 'r') as file:
+        tex_info = json.loads(file.read())
+
+    cover_index = 13 * 4 + randint(1, tex_info['covers'])
+
+    core.initialize(tex_info['card_size'])
+
     # Screen settings
     screen = pygame.display.set_mode((game_globals.win_width, game_globals.win_height))
     pygame.display.set_caption("Card Games")
@@ -31,7 +48,7 @@ def main():
     DOUBLE_CLICK_INTERVAL = 400
     DOUBLE_CLICK_OFFSET_SQUARED = 25
  
-    game = SpiderGame()
+    game = ShitheadGame()
     cards = game.setup_game()
 
     # Main loop

@@ -8,8 +8,9 @@ from game_globals import win_width, win_height, KEY_D
 from core import Card, Vacant, create_deck, CARD_SIZE, Suit, sort_aces_high, Rank
 from engine import EventType, GameBase, DroppedCardEvent
  
+from games.durak.durak_table import DurakTable
 from games.durak.player import Player
-# from games.durak.ai_player import AiPlayer
+from games.durak.ai_player import AiPlayer
 from games.durak.game_routine import GameRoutine
 from games.durak.durak_pot import DurakPot
 
@@ -90,17 +91,19 @@ class DurakGame(GameBase):
             },
             {
                 'hand': Vector2(win_width // 2, margin),
-                'ai': False
+                'ai': True
             },
         ]
         
+        table = DurakTable(self.deck, self.pot, self.kozer)
+
         for positions in player_positions:
             if positions['ai']:
-                player = Player()
+                player = AiPlayer()
             else:
                 player = Player()
             
-            player.initialize(self.pot, self.kozer)
+            player.initialize(table)
 
             self.game_routine.add_player(player)
 
@@ -111,11 +114,12 @@ class DurakGame(GameBase):
             for i in range(6):
                 drawn_card = self.deck.pop()
                 drawn_card.flip()
-                if positions['ai']:
-                    drawn_card.is_hidden = True
+                # if positions['ai']:
+                #     drawn_card.is_hidden = True
                 player.deal(drawn_card)
 
-        self.game_routine.initialize(self.deck, self.pot, self.burn_vacant, self.kozer)
+        
+        self.game_routine.initialize(table, self.burn_vacant)
 
         self.cards = vacants + cards
         self.card_manipulator.set_cards(self.cards)

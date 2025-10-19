@@ -12,7 +12,7 @@ def animate_and_relink(moved_card: Card, parent_card: Card, delay: int=0) -> Non
     parent_card.link_card(moved_card)
  
     delay = delay
-    pos = parent_card.pos + parent_card.link_offset
+    pos = parent_card.get_pos() + parent_card.link_offset
 
     event = DelayedSetPosEvent(moved_card, pos, delay=delay)
     post_event(event)
