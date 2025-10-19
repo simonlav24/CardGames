@@ -11,5 +11,6 @@ The main goal is to experiment with **clean architecture** that clearly separate
 
 * Klondike solitaire
 * Spider solitaire
-* Shithead (multiplayer)
-* Durak *(planned)*
+* Shithead (multiplayer + AI player)
+* Durak (multiplayer + AI player)
+* Egyptian Ratscrew (planned)
