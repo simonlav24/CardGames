@@ -25,6 +25,7 @@ class Rank(Enum):
     JACK = 11
     QUEEN = 12
     KING = 13
+    JOKER = 14
 
 
 class Suit(Enum):
@@ -33,6 +34,7 @@ class Suit(Enum):
     HEARTS = 2
     CLUBS = 3
     DIAMONDS = 4
+    JOKER = 5
 
 suit_text = {
     Suit.HEARTS: "Hearts",
@@ -126,6 +128,11 @@ class Card:
     def get_prev(self) -> 'Card | None':
         return self.linked_up
     
+    def break_links(self) -> None:
+        ''' break all links '''
+        self.break_lower_link()
+        self.break_upper_link()
+
     def break_upper_link(self) -> None:
         ''' break link to upper card '''
         if self.linked_up is not None:
@@ -201,24 +208,32 @@ class Vacant(Card):
 
 
 
-def create_deck() -> list[Card]:
+def create_deck(joker_allowed: bool=False) -> list[Card]:
     deck = []
     for suit in Suit:
-        if suit == Suit.NONE:
+        if suit in [Suit.NONE, Suit.JOKER]:
             continue
         for rank in Rank:
-            if rank == Rank.NONE:
+            if rank in [Rank.NONE, Rank.JOKER]:
                 continue
             card = Card(rank, suit)
             card.face_up = False
             deck.append(card)
+    
+    if joker_allowed:
+        joker1 = Card(Rank.JOKER, Suit.JOKER)
+        joker1.face_up = False
+        deck.append(joker1)
+        joker2 = Card(Rank.JOKER, Suit.JOKER)
+        joker2.face_up = False
+        deck.append(joker2)
 
     return deck
 
 def create_single_suit_deck(suit: Suit) -> list[Card]:
     deck = []
     for rank in Rank:
-        if rank == Rank.NONE:
+        if rank in [Rank.NONE, Rank.JOKER]:
             continue
         card = Card(rank, suit)
         card.face_up = False

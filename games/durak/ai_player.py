@@ -11,6 +11,8 @@ from games.durak.durak_table import DurakTable, GameStage
 from games.durak.constants import *
 
 
+
+
 DEBUG = True
 
 def debug_print(text: str) -> None:
@@ -91,6 +93,8 @@ def hand_score(hand: list[Card], kozer: Suit) -> int:
     rank_counts = Counter(card.rank for card in hand)
     pairs = [rank for rank, count in rank_counts.items() if count >= 2]
     
+    score += len(pairs) * PAIR_BONUS
+
     return score
 
 

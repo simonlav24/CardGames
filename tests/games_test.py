@@ -40,5 +40,22 @@ class TestDurak(unittest.TestCase):
         self.assertEqual(min(option_scores), option_scores[5])
         self.assertEqual(max(option_scores), 78)
 
+    def test_attack_card_pairs(self):
+        hand_cards = [
+            Card(Rank.SIX, Suit.HEARTS),
+            Card(Rank.SIX, Suit.DIAMONDS),
+            Card(Rank.EIGHT, Suit.HEARTS),
+            Card(Rank.TEN, Suit.DIAMONDS),
+            Card(Rank.KING, Suit.CLUBS),
+            Card(Rank.JACK, Suit.SPADES),
+        ]
+        kozer = Suit.SPADES
+        card_set = set(hand_cards)
+
+        score = hand_score(card_set, kozer)
+
+        self.assertEqual(score, 74)
+
+
 
 

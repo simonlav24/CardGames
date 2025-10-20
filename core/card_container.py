@@ -13,6 +13,8 @@ class CardContainer:
         self._recalculate_depth()
 
     def remove(self, card: Card) -> None:
+        card.break_lower_link()
+        card.break_upper_link()
         self.cards.remove(card)
 
     def __contains__(self, card: Card) -> bool:

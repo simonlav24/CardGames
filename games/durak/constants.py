@@ -2,3 +2,4 @@
 
 
 KOZER_BONUS = 15
+PAIR_BONUS = 5

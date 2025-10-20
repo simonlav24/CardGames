@@ -91,7 +91,7 @@ class DurakGame(GameBase):
             },
             {
                 'hand': Vector2(win_width // 2, margin),
-                'ai': True
+                'ai': False
             },
         ]
         

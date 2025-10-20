@@ -20,6 +20,7 @@ from games.spider.spider_game import SpiderGame
 from games.klondike.klondike_game import KlondikeGame
 from games.shithead.shithead_game import ShitheadGame
 from games.durak.durak_game import DurakGame
+from games.capture.capture_game import CardCaptureGame
 
 class Texture:
     def __init__(self, path: str, cover_index: int):
@@ -51,8 +52,12 @@ class Texture:
     def get_card_area(self, card: Card) -> pygame.Rect:
         if card is None:
             return self.back_rect  # Back of card
-        x = (card.rank.value - 1) * CARD_SIZE[0]
-        y = (card.suit.value - 1) * CARD_SIZE[1]
+        if card.rank == Rank.JOKER:
+            x = 0
+            y = CARD_SIZE[1] * 4
+        else:
+            x = (card.rank.value - 1) * CARD_SIZE[0]
+            y = (card.suit.value - 1) * CARD_SIZE[1]
         return pygame.Rect(x, y, CARD_SIZE[0], CARD_SIZE[1])
 
 
@@ -213,12 +218,13 @@ def main():
     with open(card_texture_info_path, 'r') as file:
         tex_info = json.loads(file.read())
 
-    cover_index = 13 * 4 + randint(1, tex_info['covers'])
+    cover_index = 13 * 4 + 1 + randint(0, tex_info['covers'] - 1)
+    print(f'{cover_index=}')
 
     core.initialize(tex_info['card_size'])
     init_graphics()
     
-    game = DurakGame()
+    game = CardCaptureGame()
     cards = game.setup_game()
     cards_animation: list[CardAnim] = []
     for card in cards:
