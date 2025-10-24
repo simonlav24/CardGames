@@ -219,7 +219,6 @@ def main():
         tex_info = json.loads(file.read())
 
     cover_index = 13 * 4 + 1 + randint(0, tex_info['covers'] - 1)
-    print(f'{cover_index=}')
 
     core.initialize(tex_info['card_size'])
     init_graphics()

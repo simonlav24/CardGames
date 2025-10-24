@@ -50,11 +50,29 @@ class PileV2(CardContainer):
             pos += self.vacant.link_offset
         
     def append(self, card: Card) -> None:
+        top = self.get_top()
         super().append(card)
-        self.get_top().link_card(card)
+        card.break_lower_link()
+        top.link_card(card)
+        self._recalculate_depth()
+        self._update_positions()
+
+    def append_to_bottom(self, card: Card) -> None:
+        if len(self.cards) == 0:
+            super().append(card)
+        else:
+            previous_bottom_card = self.vacant.linked_down
+            previous_bottom_card.break_upper_link()
+            self.vacant.link_card(card)
+            card.link_card(previous_bottom_card)
+            self.cards.insert(0, card)
+        self._update_positions()
+        self._recalculate_depth()
 
     def draw_card(self) -> Card:
         card = self.get_top()
+        if card is self.vacant:
+            return None
         if card:
             self.remove(card)
             card.break_links()

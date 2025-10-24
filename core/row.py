@@ -25,3 +25,6 @@ class Row(CardContainer):
     def append(self, card):
         super().append(card)
         card.set_pos(self.pos + Vector2(((CARD_SIZE[0] + margin) * self.direction) * (len(self.cards) -1), 0))
+
+    def index(self, card) -> int:
+        return self.cards.index(card)

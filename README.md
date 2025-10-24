@@ -13,4 +13,5 @@ The main goal is to experiment with **clean architecture** that clearly separate
 * Spider solitaire
 * Shithead (multiplayer + AI player)
 * Durak (multiplayer + AI player)
+* Card Capture
 * Egyptian Ratscrew (planned)
