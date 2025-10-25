@@ -1,5 +1,6 @@
 
 from enum import Enum
+from typing import Any
 
 from utils.utils import Vector2, Rect
 
@@ -80,6 +81,7 @@ def sort_aces_high(rank: Rank) -> int:
     return rank.value
 
 
+
 class Card:
     def __init__(self, rank: Rank, suit: Suit):
         self.rank = rank
@@ -93,6 +95,7 @@ class Card:
 
         self.link_offset = DEFAULT_LINK_OFFSET
         self.is_hidden = False
+        self.parent: Any = None
 
     def set_link_offset(self, offset: Vector2) -> None:
         self.link_offset = offset.copy()

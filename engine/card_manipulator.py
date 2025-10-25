@@ -30,6 +30,7 @@ class CardManipulator:
         self.last_pos: Vector2 = Vector2(0, 0)
 
         self.is_linking: bool = True
+        self.mouse_query: callable[[None], Vector2] = None
     
     def set_rules(self, rules: RuleSet) -> None:
         self.rules = rules
@@ -38,6 +39,7 @@ class CardManipulator:
         self.cards = cards
 
     def on_mouse_move(self, pos: Vector2) -> None:
+        return
         if self.dragged_card:
             self.drag_card(self.dragged_card, Vector2(pos) - self.drag_offset)
         
@@ -131,6 +133,17 @@ class CardManipulator:
                     closest_card = card
                     closest_dist = dist
         return closest_card
+
+    def step(self) -> None:
+        pos = self.mouse_query()
+        if self.dragged_card:
+            self.drag_card(self.dragged_card, Vector2(pos) - self.drag_offset)
+        
+        self.selected_card = None
+        closest_card = self.find_card_at_pos(Vector2(pos))
+        
+        if closest_card is not None:
+            self.selected_card = closest_card
 
     def find_card_at_pos(self, pos: Vector2, exclude: Card=None) -> Card | None:
         for card in reversed(self.cards):

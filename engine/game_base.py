@@ -30,6 +30,7 @@ class GameBase:
                 self.cards.insert(0, card)
 
     def step(self):
+        self.card_manipulator.step()
         for element in self.elements:
             element.step()
         self.elements = [e for e in self.elements if not e.is_done()]

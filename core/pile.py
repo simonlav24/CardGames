@@ -38,6 +38,7 @@ class PileV2(CardContainer):
     def __init__(self):
         super().__init__()
         self.vacant = Vacant()
+        self.vacant.parent = self
 
     def set_pos(self, pos: Vector2):
         self.vacant.set_abs_pos(pos)
@@ -89,4 +90,7 @@ class PileV2(CardContainer):
 
     def get_top(self) -> Card:
         return self.vacant.get_bottom_link()
+    
+    def get_cards_for_registry(self) -> list[Card]:
+        return [self.vacant] + self.cards
     

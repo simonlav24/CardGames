@@ -10,11 +10,13 @@ class CardContainer:
 
     def append(self, card: Card) -> None:
         self.cards.append(card)
+        card.parent = self
         self._recalculate_depth()
 
     def remove(self, card: Card) -> None:
         card.break_lower_link()
         card.break_upper_link()
+        card.parent = None
         self.cards.remove(card)
 
     def __contains__(self, card: Card) -> bool:

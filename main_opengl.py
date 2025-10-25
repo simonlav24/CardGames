@@ -103,15 +103,13 @@ def init_graphics():
 card_assets_texture: Texture = None
 
 def draw_card(card: Card):
-    glEnable(GL_TEXTURE_2D)
-    glColor4f(1.0, 1.0, 1.0, 1.0)
-    glBindTexture(GL_TEXTURE_2D, card_assets_texture.id)
-    glPushMatrix()
 
     x, y = card.pos
     w, h = CARD_SIZE
 
     anim: CardAnim = card.animation
+    
+    glPushMatrix()
 
     if anim.is_selected:
         mouse = Vector2(pygame.mouse.get_pos())
@@ -133,7 +131,7 @@ def draw_card(card: Card):
 
     if card.rank == Rank.NONE:
         glDisable(GL_TEXTURE_2D)
-        glColor3f(1.0, 0.3, 0.3)
+        glColor4f(1.0, 0.3, 0.3, 1.0)
         glBegin(GL_LINE_LOOP)
         glVertex3f(x,     y, 0)
         glVertex3f(x + w, y, 0)
@@ -143,8 +141,21 @@ def draw_card(card: Card):
         glPopMatrix()
         return
 
-    glBegin(GL_QUADS)
+    # draw linking
+    if card.linked_down is not None:
+        glDisable(GL_TEXTURE_2D)
+        glColor4f(1.0, 0.3, 0.3, 1.0)
+        glBegin(GL_LINE_LOOP)
+        glVertex3f(x, y, 0)
+        end_pos = card.linked_down.pos
+        glVertex3f(end_pos.x, end_pos.y, 0)
+        glEnd()
+
+    glEnable(GL_TEXTURE_2D)
+    glColor4f(1.0, 1.0, 1.0, 1.0)
+    glBindTexture(GL_TEXTURE_2D, card_assets_texture.id)
     
+    glBegin(GL_QUADS)
     card_rect = card_assets_texture.get_card_area(card)
     if not card.is_face_up() or card.is_hidden:
         card_rect = card_assets_texture.get_card_area(None)
@@ -205,6 +216,8 @@ class CardAnim:
 DOUBLE_CLICK_INTERVAL = 400
 DOUBLE_CLICK_OFFSET_SQUARED = 25
 
+def get_mouse_pos() -> Vector2:
+    return Vector2(pygame.mouse.get_pos())
 
 def main():
     global card_assets_texture
@@ -224,6 +237,7 @@ def main():
     init_graphics()
     
     game = KlondikeGame()
+    game.card_manipulator.mouse_query = get_mouse_pos
     cards = game.setup_game()
     cards_animation: list[CardAnim] = []
     for card in cards:
