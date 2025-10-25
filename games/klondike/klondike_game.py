@@ -100,7 +100,7 @@ class KlondikeGame(GameBase):
         card.flip()
         self.drawn_deck.append(card)
 
-        card.set_pos(card.pos + Vector2(- 10 - CARD_SIZE[0], 0))
+        card.set_pos(card.get_pos() + Vector2(- 10 - CARD_SIZE[0], 0))
 
         event = MoveToTopEvent(card)
         post_event(event)

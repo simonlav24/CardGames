@@ -50,6 +50,8 @@ class PileV2(CardContainer):
             pos += self.vacant.link_offset
         
     def append(self, card: Card) -> None:
+        if card is None:
+            return
         top = self.get_top()
         super().append(card)
         card.break_lower_link()
@@ -58,6 +60,8 @@ class PileV2(CardContainer):
         self._update_positions()
 
     def append_to_bottom(self, card: Card) -> None:
+        if card is None:
+            return
         if len(self.cards) == 0:
             super().append(card)
         else:

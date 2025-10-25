@@ -184,9 +184,10 @@ class CardCaptureGame(GameBase):
             self.hand.remove(card)
             self.enemy_waste.append(card)
         first = next(iter(self.enemy_row))
-        self.enemy_row.remove(first)
-        first.flip()
-        self.enemy_deck.append_to_bottom(first)
+        if first:
+            self.enemy_row.remove(first)
+            first.flip()
+            self.enemy_deck.append_to_bottom(first)
 
     
     def click_on_enemy(self, card: Card) -> None:

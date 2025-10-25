@@ -223,7 +223,7 @@ def main():
     core.initialize(tex_info['card_size'])
     init_graphics()
     
-    game = CardCaptureGame()
+    game = KlondikeGame()
     cards = game.setup_game()
     cards_animation: list[CardAnim] = []
     for card in cards:
