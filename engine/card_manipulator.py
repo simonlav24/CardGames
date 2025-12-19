@@ -10,7 +10,8 @@ from engine.events import (
     DelayedSetPosEvent, 
     DoubleClickedCard, 
     ClickedCard,
-    DroppedCardEvent
+    DroppedCardEvent,
+    DragStartEvent
 )
 
 DEBUG = False
@@ -28,8 +29,6 @@ class CardManipulator:
         self.dragged_card: Card | None = None
         self.drag_offset: Vector2 = Vector2(0, 0)
         self.last_pos: Vector2 = Vector2(0, 0)
-
-        self.is_linking: bool = True
     
     def set_rules(self, rules: RuleSet) -> None:
         self.rules = rules
@@ -58,6 +57,7 @@ class CardManipulator:
         self.last_pos = self.selected_card.get_pos().copy()
         self.dragged_card = self.selected_card
         self.drag_offset = Vector2(pos) - self.dragged_card.pos
+        post_event(DragStartEvent(self.dragged_card))
 
         if self.rules.move_to_front_on_drag:
             self.move_card_to_top(self.dragged_card)
@@ -68,52 +68,36 @@ class CardManipulator:
             return
         post_event(DoubleClickedCard(card=self.selected_card))
 
-    def _calc_previous_pos(self, card: Card) -> Vector2:
-        parent = card.get_prev()
-        if parent is None:
-            return self.last_pos
-        return parent.pos + parent.link_offset
 
     def on_mouse_release(self, pos: Vector2) -> None:
         if not self.dragged_card:
             return
         
-        card_to_link = self.dragged_card
+        dragged_card = self.dragged_card
         self.dragged_card = None
         self.drag_offset = Vector2(0, 0)
 
-        legal_drop = False
 
-        potential_parent = self.find_card_near_pos(Vector2(pos), exclude=card_to_link)
-        previous_link = card_to_link.get_prev()
+        potential_parent = self.find_card_near_pos(Vector2(pos), exclude=dragged_card)
+
+        legal_drop = self.rules.can_drop_card(potential_parent, dragged_card)
+        if not legal_drop:
+            parent = dragged_card.parent
+            if parent is not None:
+                parent.refresh()
+            
 
         if potential_parent is not None:
-            if self.rules.can_drop_card(potential_parent, card_to_link):
-                # card is placed, link cards
-                legal_drop = True
-                is_linked = self.link_cards(potential_parent, card_to_link)
-                if not is_linked:
-                    legal_drop = False
+            if legal_drop:
+                post_event(DroppedCardEvent(dragged_card, potential_parent, legal_drop))
 
-        if legal_drop:
-            # self.animate_sequence_to_pos(card_to_link, potential_parent.pos + potential_parent.link_offset)
-            prev_card = potential_parent
-            for card in card_to_link.iterate_down():
-                card.set_abs_pos(prev_card.pos + prev_card.link_offset)
-                prev_card = card
             
 
-        if not legal_drop and self.rules.on_drop_return_to_previous_pos:
-            self.animate_sequence_to_pos(card_to_link, self.last_pos)
-        
-        post_event(DroppedCardEvent(card_to_link, potential_parent, self.last_pos, previous_link, legal_drop))
-            
-
-    def animate_sequence_to_pos(self, card: Card, end_pos: Vector2):
-        for i, linked_card in enumerate(card.iterate_down()):
-            event = DelayedSetPosEvent(card=linked_card, pos=end_pos, delay=i * 2)
-            post_event(event)
-            end_pos = end_pos + card.link_offset
+    # def animate_sequence_to_pos(self, card: Card, end_pos: Vector2):
+    #     for i, linked_card in enumerate(card.iterate_down()):
+    #         event = DelayedSetPosEvent(card=linked_card, pos=end_pos, delay=i * 2)
+    #         post_event(event)
+    #         end_pos = end_pos + card.link_offset
 
         
     def find_card_near_pos(self, pos: Vector2, exclude: Card=None) -> Card | None:
@@ -121,8 +105,6 @@ class CardManipulator:
         closest_dist: float = float('inf')
         for card in reversed(self.cards):
             if card is exclude:
-                continue
-            if card.linked_down is not None:
                 continue
             card_rect = Rect(*(card.pos - CARD_SIZE * 0.5), *(CARD_SIZE * 2))
             if card_rect.collidepoint(pos):
@@ -133,6 +115,7 @@ class CardManipulator:
         return closest_card
 
     def find_card_at_pos(self, pos: Vector2, exclude: Card=None) -> Card | None:
+        # TODO: find nearest card instead of first
         for card in reversed(self.cards):
             if card is exclude:
                 continue
@@ -141,28 +124,17 @@ class CardManipulator:
                 return card
         return None
 
-    def link_cards(self, upper: Card, lower: Card) -> bool:
-
-        bottom_card = upper.get_bottom_link()
-        
-        if bottom_card is lower:
-            return False
-        
-        if not self.rules.can_drop_card(bottom_card, lower):
-            return False
-        
-        is_linked = bottom_card.link_card(lower)
-
-        return is_linked
 
     def drag_card(self, card: Card, pos: Vector2):
         if card.rank == Rank.NONE:
             return
-
         card.set_abs_pos(pos)
-        next_card = card.get_next()
-        if next_card is not None:
-            self.drag_card(next_card, pos + next_card.get_prev().link_offset)
+        if card.parent is not None:
+            card.parent.refresh()
+
+        # next_card = card.get_next()
+        # if next_card is not None:
+        #     self.drag_card(next_card, pos + next_card.get_prev().link_offset)
 
 
     def move_card_to_top(self, card: Card):
@@ -171,7 +143,11 @@ class CardManipulator:
             return
         self.cards.remove(card)
         self.cards.append(card)
-        next_card = card.get_next()
-        if next_card is not None:
-            self.move_card_to_top(next_card)
+        # next_card = card.get_next()
+        # if next_card is not None:
+        #     self.move_card_to_top(next_card)
+
+    def step(self) -> None:
+        for card in self.cards:
+            card.step()
         

@@ -19,6 +19,7 @@ class EventType(Enum):
     DOUBLE_CLICK_CARD = 5
     CLICK_CARD = 6
     DROPPED_CARD = 7
+    DRAG_START = 8
 
 
 @dataclass
@@ -69,10 +70,13 @@ class DoubleClickedCard(Event):
 class DroppedCardEvent(Event):
     placed_card: Card
     placed_upon: Card
-    last_pos: Vector2
-    last_parent: Card
     legal_drop: bool
     type: EventType = EventType.DROPPED_CARD
+
+@dataclass
+class DragStartEvent(Event):
+    drag_card: Card
+    type: EventType = EventType.DRAG_START
 
 def post_event(event: Event):
     if(TEST_MODE):

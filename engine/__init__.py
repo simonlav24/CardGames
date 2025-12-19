@@ -12,3 +12,4 @@ from .events import (
     MoveToTopEvent
 )
 from .rules import RuleSet
+from .renderer import Renderer

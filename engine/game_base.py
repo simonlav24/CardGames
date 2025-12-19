@@ -33,8 +33,7 @@ class GameBase:
         for element in self.elements:
             element.step()
         self.elements = [e for e in self.elements if not e.is_done()]
-        for card in self.cards:
-            card.step()
+        self.card_manipulator.step()
 
     def get_selected_card(self) -> Card | None:
         return self.card_manipulator.selected_card
