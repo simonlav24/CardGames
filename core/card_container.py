@@ -8,13 +8,16 @@ class CardContainer:
     def __init__(self):
         self.cards: list[Card] = []
 
-    def append(self, card: Card) -> None:
-        self.cards.append(card)
+    def insert(self, card: Card, position: int=-1) -> None:
+        if position == -1:
+            self.cards.append(card)
+        else:
+            self.cards.insert(position, card)
+        card.parent = self
         self._recalculate_depth()
 
     def remove(self, card: Card) -> None:
-        card.break_lower_link()
-        card.break_upper_link()
+        card.parent = None
         self.cards.remove(card)
 
     def __contains__(self, card: Card) -> bool:
@@ -32,3 +35,6 @@ class CardContainer:
     
     def clear(self) -> None:
         self.cards.clear()
+
+    def refresh(self) -> None:
+        ...

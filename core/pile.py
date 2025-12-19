@@ -35,43 +35,27 @@ class Pile(CardContainer):
     
 
 class PileV2(CardContainer):
-    def __init__(self):
+    def __init__(self, pos: Vector2=(0,0), offset: Vector2=(0,20)):
         super().__init__()
-        self.vacant = Vacant()
+        self.vacant = Vacant(Vector2(pos))
+        self.card_offset = Vector2(offset)
 
     def set_pos(self, pos: Vector2):
         self.vacant.set_abs_pos(pos)
         self._update_positions()
 
     def _update_positions(self):
-        pos = self.vacant.pos.copy()
+        pos = self.vacant.get_pos()
         for card in self.cards:
             card.set_pos(pos)
-            pos += self.vacant.link_offset
+            pos += self.card_offset
         
-    def append(self, card: Card) -> None:
+    def insert(self, card: Card, position: int=-1) -> None:
         if card is None:
             return
-        top = self.get_top()
-        super().append(card)
-        card.break_lower_link()
-        top.link_card(card)
+        super().insert(card, position)
         self._recalculate_depth()
         self._update_positions()
-
-    def append_to_bottom(self, card: Card) -> None:
-        if card is None:
-            return
-        if len(self.cards) == 0:
-            super().append(card)
-        else:
-            previous_bottom_card = self.vacant.linked_down
-            previous_bottom_card.break_upper_link()
-            self.vacant.link_card(card)
-            card.link_card(previous_bottom_card)
-            self.cards.insert(0, card)
-        self._update_positions()
-        self._recalculate_depth()
 
     def draw_card(self) -> Card:
         card = self.get_top()
@@ -79,7 +63,6 @@ class PileV2(CardContainer):
             return None
         if card:
             self.remove(card)
-            card.break_links()
         return card
 
     def __contains__(self, card) -> bool:
@@ -88,5 +71,35 @@ class PileV2(CardContainer):
         return super().__contains__(card)
 
     def get_top(self) -> Card:
-        return self.vacant.get_bottom_link()
+        return self.cards[-1] if self.cards else self.vacant
     
+    def get_vacant(self) -> Vacant:
+        return self.vacant
+    
+
+class DraggedPile(CardContainer):
+    def __init__(self, cards: list[Card], offset: Vector2=(0,20)):
+        super().__init__()
+        for card in cards:
+            self.insert(card)
+        self.card_offset = Vector2(offset)
+
+    def set_pos(self, pos: Vector2):
+        ...
+
+    def refresh(self) -> None:
+        self._update_positions()
+
+    def _update_positions(self):
+        pos = self.cards[0].get_pos()
+        for card in self.cards:
+            card.set_pos(pos)
+            pos += self.card_offset
+        
+    def insert(self, card: Card, position: int=-1) -> None:
+        if card is None:
+            return
+        super().insert(card, position)
+        self._recalculate_depth()
+        self._update_positions()
+

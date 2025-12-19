@@ -11,6 +11,7 @@ from OpenGL.GLU import *
 
 import core
 from core import Card, CARD_SIZE, Rank
+from engine import Renderer
 
 from utils import Vector2
 import utils.custom_random as custom_random
@@ -97,6 +98,8 @@ def init_graphics():
     glEnable(GL_BLEND)
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
     glClearColor(0.1, 0.1, 0.1, 1.0)
+    
+
 
 
 
@@ -223,6 +226,7 @@ def main():
     core.initialize(tex_info['card_size'])
     init_graphics()
     
+
     game = KlondikeGame()
     cards = game.setup_game()
     cards_animation: list[CardAnim] = []
@@ -230,6 +234,11 @@ def main():
         anim = CardAnim(card)
         card.animation = anim
         cards_animation.append(anim)
+    
+    
+    renderer = Renderer()
+    renderer.set_cards(cards)
+    renderer.draw_cards = draw_card
 
     clock = pygame.time.Clock()
 
@@ -241,6 +250,7 @@ def main():
     running = True
     while running:
         for event in pygame.event.get():
+            
             if event.type == QUIT:
                 running = False
             elif event.type == pygame.KEYDOWN:
@@ -270,6 +280,8 @@ def main():
 
             elif event.type == pygame.USEREVENT:
                 game.handle_event(event.dict.get('event'))
+                renderer.handle_event(event.dict.get('event'))
+
 
         game.step()
 
@@ -284,8 +296,9 @@ def main():
             if game.get_selected_card() is card_anim.card:
                 card_anim.is_selected = True
 
-        for card in cards:
-            draw_card(card)
+        renderer.draw()
+        # for card in cards:
+        #     draw_card(card)
 
         pygame.display.flip()
         clock.tick(FPS)

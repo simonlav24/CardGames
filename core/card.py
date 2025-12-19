@@ -85,17 +85,12 @@ class Card:
         self.rank = rank
         self.suit = suit
         self.face_up = True
-        self.linked_up: Card | None = None
-        self.linked_down: Card | None = None
         
         self.pos = Vector2()
         self.target_pos = Vector2()
 
-        self.link_offset = DEFAULT_LINK_OFFSET
         self.is_hidden = False
-
-    def set_link_offset(self, offset: Vector2) -> None:
-        self.link_offset = offset.copy()
+        self.parent = None
 
     def set_pos(self, pos: Vector2) -> None:
         self.target_pos = pos.copy()
@@ -107,82 +102,9 @@ class Card:
     def get_pos(self) -> Vector2:
         return self.target_pos.copy()
 
-    def get_bottom_link(self) -> 'Card':
-        # return bottom most linked card
-        card = self
-        while card.linked_down is not None:
-            card = card.linked_down
-        return card
-    
-    def get_top_link(self) -> 'Card':
-        *_, last = self.iterate_up()
-        return last
-
-    def is_linked(self) -> bool:
-        ''' check if linked from above '''
-        return self.linked_up is not None
-    
-    def get_next(self) -> 'Card | None':
-        return self.linked_down
-    
-    def get_prev(self) -> 'Card | None':
-        return self.linked_up
-    
-    def break_links(self) -> None:
-        ''' break all links '''
-        self.break_lower_link()
-        self.break_upper_link()
-
-    def break_upper_link(self) -> None:
-        ''' break link to upper card '''
-        if self.linked_up is not None:
-            self.linked_up.linked_down = None
-            self.linked_up = None
-
-    def break_lower_link(self) -> None:
-        ''' break link to lower card '''
-        if self.linked_down is not None:
-            self.linked_down.linked_up = None
-            self.linked_down = None
-
-    def link_card(self, card: 'Card') -> bool:
-        ''' link a card below this card '''
-
-        for uplink in self.iterate_up():
-            if uplink is self:
-                continue
-            if uplink is card:
-                return False  # already linked
-        for downlink in self.iterate_down():
-            if downlink is self:
-                continue
-            if downlink is card:
-                return False  # already linked
-
-        if card.linked_up is not None:
-            card.break_upper_link()    
-        
-        self.linked_down = card
-        card.linked_up = self
-        
-        card.set_link_offset(self.link_offset)
-        return True
-
     def __repr__(self):
         return f"{rank_text[self.rank]} of {suit_text[self.suit]}"
     
-    def iterate_up(self):
-        card = self
-        while card is not None:
-            yield card
-            card = card.linked_up
-
-    def iterate_down(self):
-        card = self
-        while card is not None:
-            yield card
-            card = card.linked_down
-
     def is_face_up(self) -> bool:
         return self.face_up
 
@@ -202,9 +124,6 @@ class Vacant(Card):
 
     def __repr__(self):
         return "Vacant"
-    
-    def is_free(self) -> bool:
-        return self.get_next() is None
 
 
 
